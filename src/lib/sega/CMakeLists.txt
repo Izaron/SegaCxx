@@ -1,0 +1,5 @@
+add_subdirectory(executor)
+add_subdirectory(gui)
+add_subdirectory(memory)
+add_subdirectory(rom_loader)
+add_subdirectory(video)

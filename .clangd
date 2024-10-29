@@ -2,7 +2,7 @@ Diagnostics:
   MissingIncludes: Strict
   UnusedIncludes: Strict
   Includes:
-    IgnoreHeader: [concepts, ranges, __expected/.*]
+    IgnoreHeader: [concepts, ranges, __expected/.*, __chrono/.*]
   ClangTidy:
     Add: bugprone-*
     Remove: bugprone-lambda-function-name

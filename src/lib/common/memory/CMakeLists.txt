@@ -1,0 +1,2 @@
+add_library(m68k_memory INTERFACE)
+target_link_libraries(m68k_memory INTERFACE m68k_error)

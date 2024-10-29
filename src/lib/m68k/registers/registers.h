@@ -1,9 +1,12 @@
 #pragma once
 #include <array>
 #include <cstdint>
+#include <fmt/core.h>
 #include <string>
 
-#include "lib/m68k/memory/types.h"
+#include "fmt/base.h"
+#include "fmt/format.h"
+#include "lib/common/memory/types.h"
 
 namespace m68k {
 
@@ -46,7 +49,7 @@ struct Registers {
     bool : 3;
 
     // upper byte
-    uint8_t interrupt : 3;
+    uint8_t interrupt_mask : 3;
     bool : 1;
     bool master_switch : 1;
     bool supervisor : 1;
@@ -72,5 +75,13 @@ struct Registers {
 };
 
 std::string dump(const Registers& registers);
+std::string dump_colored(const Registers& registers);
 
 } // namespace m68k
+
+template<>
+struct fmt::formatter<m68k::Registers> : formatter<std::string> {
+  auto format(const m68k::Registers& registers, format_context& ctx) const {
+    return formatter<std::string>::format(dump_colored(registers), ctx);
+  }
+};

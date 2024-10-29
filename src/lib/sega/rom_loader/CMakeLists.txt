@@ -1,0 +1,2 @@
+add_library(sega_rom_loader rom_loader.cpp)
+target_link_libraries(sega_rom_loader spdlog::spdlog_header_only)

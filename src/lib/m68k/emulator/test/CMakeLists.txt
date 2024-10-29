@@ -1,2 +1,0 @@
-add_executable(m68k_emulator_test main.cpp)
-target_link_libraries(m68k_emulator_test m68k_registers m68k_emulator m68k_opcodes m68k_memory m68k_error)

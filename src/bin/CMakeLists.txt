@@ -1,0 +1,2 @@
+add_subdirectory(m68k_test)
+add_subdirectory(sega_emulator)
