@@ -1,0 +1,8 @@
+Diagnostics:
+  MissingIncludes: Strict
+  UnusedIncludes: Strict
+  Includes:
+    IgnoreHeader: [concepts, ranges, __expected/.*]
+  ClangTidy:
+    Add: bugprone-*
+    Remove: bugprone-lambda-function-name
