@@ -1,1 +1,1 @@
-add_library(m68k_error INTERFACE)
+add_library(error INTERFACE)

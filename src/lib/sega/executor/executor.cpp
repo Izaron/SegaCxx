@@ -13,11 +13,11 @@
 #include "lib/sega/memory/vdp_device.h"
 #include "lib/sega/memory/z80_device.h"
 #include "lib/sega/rom_loader/rom_loader.h"
+#include "lib/sega/state_dump/state_dump.h"
 #include <cassert>
 #include <cstring>
 #include <memory>
 #include <spdlog/spdlog.h>
-#include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -31,7 +31,8 @@ public:
 
   Impl(std::string_view rom_path)
       : rom_{load_rom(rom_path)}, rom_device_{DataView{reinterpret_cast<const Byte*>(rom_.data()), rom_.size()}},
-        vdp_device_{bus_}, interrupt_handler_{vector_table().vblank_pc.get(), registers_, bus_, vdp_device_} {
+        vdp_device_{bus_}, interrupt_handler_{vector_table().vblank_pc.get(), registers_, bus_, vdp_device_},
+        state_dump_{vdp_device_} {
     spdlog::info("loaded ROM file {}", rom_path);
 
     // setup bus devices
@@ -106,6 +107,14 @@ public:
     return registers_;
   }
 
+  void save_dump_to_file(std::string_view path) const {
+    state_dump_.save_dump_to_file(path);
+  }
+
+  void apply_dump_from_file(std::string_view path) {
+    state_dump_.apply_dump_from_file(path);
+  }
+
 private:
   const Header& rom_header() const {
     return *reinterpret_cast<const Header*>(rom_.data());
@@ -131,6 +140,9 @@ private:
 
   // interrupt handler
   InterruptHandler interrupt_handler_;
+
+  // utils
+  StateDump state_dump_;
 };
 
 Executor::Executor(std::string_view rom_path) : impl_{std::make_unique<Impl>(rom_path)} {}
@@ -163,6 +175,14 @@ const Metadata& Executor::metadata() const {
 
 const m68k::Registers& Executor::registers() const {
   return impl_->registers();
+}
+
+void Executor::save_dump_to_file(std::string_view path) const {
+  return impl_->save_dump_to_file(path);
+}
+
+void Executor::apply_dump_from_file(std::string_view path) {
+  return impl_->apply_dump_from_file(path);
 }
 
 } // namespace sega

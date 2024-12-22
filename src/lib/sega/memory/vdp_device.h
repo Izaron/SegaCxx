@@ -2,6 +2,7 @@
 #include "lib/common/error/error.h"
 #include "lib/common/memory/device.h"
 #include "lib/common/memory/types.h"
+#include "lib/common/util/passkey.h"
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -34,9 +35,16 @@ public:
   DataView vram_data() const {
     return vram_data_;
   }
+  DataView vsram_data() const {
+    return vsram_data_;
+  }
   DataView cram_data() const {
     return cram_data_;
   }
+
+  // dump or apply whole VDP state
+  std::vector<Byte> dump_state(Passkey<class StateDump>) const;
+  void apply_state(Passkey<StateDump>, DataView state);
 
 private:
   std::optional<Error> read(AddressType addr, MutableDataView data) override;
@@ -100,6 +108,9 @@ private:
   bool use_dma_{};
   RamKind ram_kind_{RamKind::Vram};
   Word ram_address_{};
+
+  // registers data
+  std::vector<Byte> registers_;
 
   // video RAMs data
   std::vector<Byte> vram_data_;

@@ -43,7 +43,7 @@ public:
   using Base::Base;
 
   template<std::integral T>
-  T as() {
+  T as() const {
     return std::byteswap(*reinterpret_cast<const T*>(data()));
   }
 };

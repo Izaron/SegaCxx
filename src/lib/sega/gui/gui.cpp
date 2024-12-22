@@ -210,6 +210,9 @@ void Gui::add_main_window() {
   ImGui::Checkbox("Tilemap Window", &show_tilemap_window_);
   ImGui::Checkbox("Sprite Table Window", &show_sprite_table_window_);
   ImGui::Checkbox("Demo Window", &show_demo_window_);
+  if (ImGui::Button("Save Dump")) {
+    executor_.save_dump_to_file("dump.bin");
+  }
 
   auto& io = ImGui::GetIO();
   ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);

@@ -5,7 +5,6 @@
 #include "lib/common/memory/types.h"
 #include "lib/sega/memory/vdp_device.h"
 #include "lib/sega/video/colors.h"
-#include "spdlog/spdlog.h"
 #include <cstddef>
 #include <cstdint>
 #include <span>
@@ -53,7 +52,6 @@ std::span<const Sprite> SpriteTable::read_sprites() {
   const Word base_addr = vdp_device_.sprite_table_address();
   uint8_t sprite_id = 0;
   sprites_count_ = 0;
-  spdlog::info("sprite table base addr: {:04x}", base_addr);
   while (true) {
     const auto& sprite_entry = *reinterpret_cast<const SpriteEntry*>(vdp_device_.vram_data().data() + base_addr +
                                                                      sprite_id * sizeof(SpriteEntry));

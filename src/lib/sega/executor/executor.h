@@ -37,6 +37,9 @@ public:
   const Metadata& metadata() const;
   const m68k::Registers& registers() const;
 
+  void save_dump_to_file(std::string_view path) const;
+  void apply_dump_from_file(std::string_view path);
+
 private:
   class Impl;
   std::unique_ptr<Impl> impl_;

@@ -9,4 +9,4 @@ add_library(
     vdp_device.cpp
     z80_device.cpp
 )
-target_link_libraries(sega_memory m68k_memory)
+target_link_libraries(sega_memory memory)

@@ -3,6 +3,7 @@
 #include "lib/common/error/error.h"
 #include "lib/common/memory/device.h"
 #include "lib/common/memory/types.h"
+#include "lib/common/util/passkey.h"
 #include "magic_enum/magic_enum.hpp"
 #include <algorithm>
 #include <bit>
@@ -11,8 +12,12 @@
 #include <cstdint>
 #include <cstring>
 #include <fmt/core.h>
+#include <functional>
+#include <iterator>
 #include <optional>
 #include <spdlog/spdlog.h>
+#include <tuple>
+#include <utility>
 #include <vector>
 
 // reference: https://plutiedev.com/writing-video
@@ -135,6 +140,9 @@ enum class VdpRegister : Byte {
   DmaSourceLow = 0x95,
   DmaSourceMiddle = 0x96,
   DmaSourceHigh = 0x97,
+
+  First = ModeSet1,
+  Last = DmaSourceHigh,
 };
 
 struct Mode1 {
@@ -284,9 +292,30 @@ static_assert(sizeof(DmaSourceHigh) == 1);
 } // namespace
 
 VdpDevice::VdpDevice(Device& bus_device) : bus_device_{bus_device} {
+  registers_.resize(std::to_underlying(VdpRegister::Last) - std::to_underlying(VdpRegister::First) + 1);
   vram_data_.resize(kVramSize);
   vsram_data_.resize(kVsramSize);
   cram_data_.resize(kCramSize);
+}
+
+std::vector<Byte> VdpDevice::dump_state(Passkey<StateDump>) const {
+  std::vector<Byte> state;
+  for (const auto& data :
+       {std::cref(registers_), std::cref(vram_data_), std::cref(vsram_data_), std::cref(cram_data_)}) {
+    std::ranges::copy(data.get(), std::back_inserter(state));
+  }
+  return state;
+}
+
+void VdpDevice::apply_state(Passkey<StateDump>, DataView state) {
+  for (Byte reg = std::to_underlying(VdpRegister::First), i = 0; reg <= std::to_underlying(VdpRegister::Last);
+       ++reg, ++i) {
+    std::ignore = process_vdp_register((Word{reg} << 8) | state[i]);
+  }
+  for (auto& data : {std::ref(registers_), std::ref(vram_data_), std::ref(vsram_data_), std::ref(cram_data_)}) {
+    std::ranges::copy(state.data(), state.data() + data.get().size(), data.get().begin());
+    state = {state.data() + data.get().size(), state.data() + state.size()};
+  }
 }
 
 std::optional<Error> VdpDevice::read(AddressType addr, MutableDataView data) {
@@ -519,6 +548,7 @@ std::optional<Error> VdpDevice::process_vdp_register(Word data) {
   default:
     return Error{Error::InvalidWrite, fmt::format("Invalid VDP register command: {:02x}", data)};
   }
+  registers_[kind - std::to_underlying(VdpRegister::First)] = value;
   return std::nullopt;
 }
 
