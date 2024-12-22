@@ -22,6 +22,7 @@
 #include <functional>
 #include <ios>
 #include <locale>
+#include <ranges>
 #include <spdlog/spdlog.h>
 #include <sstream>
 #include <string>
@@ -52,7 +53,8 @@ std::string make_title(const Metadata& metadata) {
 
 } // namespace
 
-Gui::Gui(Executor& executor) : executor_{executor}, tilemap_{executor_.vdp_device()} {
+Gui::Gui(Executor& executor)
+    : executor_{executor}, tilemap_{executor_.vdp_device()}, sprite_table_{executor_.vdp_device(), colors_} {
   std::locale::global(std::locale("en_US.utf8"));
 }
 
@@ -168,6 +170,9 @@ void Gui::loop() {
     if (show_tilemap_window_) {
       add_tilemap_window();
     }
+    if (show_sprite_table_window_) {
+      add_sprite_table_window();
+    }
     if (show_demo_window_) {
       ImGui::ShowDemoWindow(&show_demo_window_);
     }
@@ -203,6 +208,7 @@ void Gui::add_main_window() {
   ImGui::Checkbox("Execution Window", &show_execution_window_);
   ImGui::Checkbox("Colors Window", &show_colors_window_);
   ImGui::Checkbox("Tilemap Window", &show_tilemap_window_);
+  ImGui::Checkbox("Sprite Table Window", &show_sprite_table_window_);
   ImGui::Checkbox("Demo Window", &show_demo_window_);
 
   auto& io = ImGui::GetIO();
@@ -410,7 +416,65 @@ void Gui::add_tilemap_window() {
   const auto scale = 8 * static_cast<float>(tilemap_scale_);
   const auto width = scale * static_cast<float>(tilemap_.width());
   const auto height = scale * static_cast<float>(tilemap_.height());
-  ImGui::Image(tilemap_.draw(colors_.palette(tilemap_palette_)), ImVec2(width, height));
+  ImGui::Image(tilemap_.draw(colors_.palette(tilemap_palette_)), ImVec2(width, height),
+               /*uv0=*/ImVec2(0, 0), /*uv1=*/ImVec2(1, 1), /*tint_col=*/ImVec4(1, 1, 1, 1),
+               /*border_col=*/ImVec4(1, 1, 1, 1));
+  ImGui::End();
+}
+
+void Gui::add_sprite_table_window() {
+  ImGui::Begin("Sprite Table", &show_sprite_table_window_);
+
+  ImGui::Checkbox("Auto Update##Sprite Table", &sprite_table_auto_update_);
+
+  ImGui::SliderInt("Scale##Sprite Table", &sprite_scale_, /*v_min=*/1, /*v_max=*/8);
+
+  if (ImGui::Button("Draw Sprites") || sprite_table_auto_update_) {
+    sprites_ = sprite_table_.read_sprites();
+    sprite_textures_ = sprite_table_.draw_sprites();
+  }
+
+  static constexpr ImGuiTableFlags kFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg;
+  if (ImGui::BeginTable("sprite_table", 2, kFlags)) {
+    ImGui::TableSetupColumn("Description");
+    ImGui::TableSetupColumn("Image");
+    ImGui::TableHeadersRow();
+    for (const auto& [sprite, texture] : std::views::zip(sprites_, sprite_textures_)) {
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("Coordinate =");
+      ImGui::SameLine();
+      ImGui::TextColored(kSizeColor, "%dx%d", sprite.x_coord, sprite.y_coord);
+      ImGui::Text("Size in tiles =");
+      ImGui::SameLine();
+      ImGui::TextColored(kSizeColor, "%dx%d", sprite.width, sprite.height);
+      ImGui::Text("Tile ID =");
+      ImGui::SameLine();
+      ImGui::TextColored(kSizeColor, "%d", sprite.tile_id);
+      ImGui::Text("Palette =");
+      ImGui::SameLine();
+      ImGui::TextColored(kSizeColor, "%d", sprite.palette);
+      ImGui::Text("Priority =");
+      ImGui::SameLine();
+      ImGui::TextColored(kSizeColor, "%d", sprite.priority);
+      ImGui::Text("Flip H =");
+      ImGui::SameLine();
+      ImGui::TextColored(kSizeColor, "%d", sprite.flip_horizontally);
+      ImGui::Text("Flip V =");
+      ImGui::SameLine();
+      ImGui::TextColored(kSizeColor, "%d", sprite.flip_vertically);
+
+      ImGui::TableNextColumn();
+      const auto scale = 8 * static_cast<float>(sprite_scale_);
+      const auto width = scale * static_cast<float>(sprite.width);
+      const auto height = scale * static_cast<float>(sprite.height);
+      ImGui::Image(texture, ImVec2(width, height),
+                   /*uv0=*/ImVec2(0, 0), /*uv1=*/ImVec2(1, 1), /*tint_col=*/ImVec4(1, 1, 1, 1),
+                   /*border_col=*/ImVec4(1, 1, 1, 1));
+    }
+    ImGui::EndTable();
+  }
+
   ImGui::End();
 }
 

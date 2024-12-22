@@ -1,5 +1,6 @@
 #include "tilemap.h"
 #include "SDL_opengl.h"
+#include "constants.h"
 #include "imgui.h"
 #include "lib/sega/memory/vdp_device.h"
 #include "lib/sega/video/colors.h"
@@ -8,18 +9,8 @@
 
 namespace sega {
 
-namespace {
-
-constexpr size_t kMaxTiles = 64ULL * 64;
-constexpr size_t kTileDimension = 8;
-constexpr size_t kTileSize = kTileDimension * kTileDimension;
-constexpr size_t kBytesPerPixel = 4;
-constexpr size_t kVramBytesPerTile = 32;
-
-} // namespace
-
 Tilemap::Tilemap(const VdpDevice& vdp_device) : vdp_device_{vdp_device} {
-  canvas_.resize(kMaxTiles * kTileSize * kBytesPerPixel);
+  canvas_.resize(kMaxVpdTiles * kTileSize * kBytesPerPixel);
 }
 
 ImTextureID Tilemap::draw(const Colors::Palette& palette) {
@@ -46,7 +37,7 @@ ImTextureID Tilemap::draw(const Colors::Palette& palette) {
   for (size_t j = 0; j < height_; ++j) {
     for (size_t i = 0; i < width_; ++i) {
       const auto tile_idx = j * width_ + i;
-      auto* vram_ptr = vdp_device_.vram_data().data() + kVramBytesPerTile * tile_idx;
+      const auto* vram_ptr = vdp_device_.vram_data().data() + kVramBytesPerTile * tile_idx;
 
       for (size_t tile_j = 0; tile_j < kTileDimension; ++tile_j) {
         for (size_t tile_i = 0; tile_i < kTileDimension; ++tile_i) {

@@ -556,8 +556,8 @@ void VdpDevice::process_plane_b_table_address(Byte value) {
 
 void VdpDevice::process_sprite_table_address(Byte value) {
   const auto sprite = std::bit_cast<SpriteTableAddress>(value);
-  const AddressType address = kSpriteAddressScale * sprite.address;
-  spdlog::debug("sprite table address: {:04x}", address);
+  sprite_table_address_ = kSpriteAddressScale * sprite.address;
+  spdlog::info("sprite table address: {:04x}", sprite_table_address_);
 }
 
 void VdpDevice::process_background_color(Byte value) {

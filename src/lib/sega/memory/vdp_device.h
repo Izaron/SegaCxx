@@ -26,6 +26,9 @@ public:
   uint8_t tilemap_height() const {
     return tilemap_height_;
   }
+  Word sprite_table_address() const {
+    return sprite_table_address_;
+  }
 
   // video RAM data
   DataView vram_data() const {
@@ -90,6 +93,7 @@ private:
   Byte auto_increment_{};
   uint8_t tilemap_width_{};
   uint8_t tilemap_height_{};
+  Word sprite_table_address_{};
 
   // video RAM address
   std::optional<Word> first_half_;
