@@ -21,6 +21,12 @@ public:
   bool vblank_interrupt_enabled() const {
     return vblank_interrupt_enabled_;
   }
+  uint8_t tile_width() const {
+    return width_;
+  }
+  uint8_t tile_height() const {
+    return height_;
+  }
   uint8_t tilemap_width() const {
     return tilemap_width_;
   }
@@ -29,6 +35,12 @@ public:
   }
   Word sprite_table_address() const {
     return sprite_table_address_;
+  }
+  uint8_t background_color_palette() const {
+    return background_color_palette_;
+  }
+  uint8_t background_color_index() const {
+    return background_color_index_;
   }
 
   // video RAM data
@@ -99,9 +111,13 @@ private:
   Long dma_source_words_{}; // warning - size in words, not in bytes
   DmaType dma_type_{DmaType::MemoryToVram};
   Byte auto_increment_{};
+  uint8_t width_{};
+  uint8_t height_{};
   uint8_t tilemap_width_{};
   uint8_t tilemap_height_{};
   Word sprite_table_address_{};
+  uint8_t background_color_palette_{};
+  uint8_t background_color_index_{};
 
   // video RAM address
   std::optional<Word> first_half_;

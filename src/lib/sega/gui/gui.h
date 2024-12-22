@@ -2,9 +2,9 @@
 #include "SDL_video.h"
 #include "imgui.h"
 #include "lib/sega/executor/executor.h"
-#include "lib/sega/video/colors.h"
 #include "lib/sega/video/sprite_table.h"
 #include "lib/sega/video/tilemap.h"
+#include "lib/sega/video/video.h"
 #include <array>
 #include <cstdint>
 #include <functional>
@@ -49,6 +49,7 @@ private:
 
   // Game window
   bool show_game_window_{true};
+  Video video_;
 
   // Execution window
   bool show_execution_window_{true};
@@ -58,7 +59,6 @@ private:
 
   // Colors window
   bool show_colors_window_{false};
-  Colors colors_;
 
   // Tilemap window
   bool show_tilemap_window_{false};
@@ -69,7 +69,6 @@ private:
   // Sprite table window
   bool show_sprite_table_window_{false};
   bool sprite_table_auto_update_{false};
-  SpriteTable sprite_table_;
   int sprite_scale_{1};
   std::span<const Sprite> sprites_;
   std::span<const ImTextureID> sprite_textures_;

@@ -561,6 +561,14 @@ void VdpDevice::process_mode1_set(Byte value) {
 void VdpDevice::process_mode2_set(Byte value) {
   const auto mode2 = std::bit_cast<Mode2>(value);
   vblank_interrupt_enabled_ = mode2.enable_vblank_interrupt;
+  height_ = std::invoke([&] {
+    switch (mode2.vertical_resolution) {
+    case Mode2::VerticalResolution::V28:
+      return 28;
+    case Mode2::VerticalResolution::V30:
+      return 30;
+    }
+  });
   spdlog::debug("mode2 set vertical_resolution: {} allow_dma: {} enable_vblank_interrupt: {} enable_rendering: {}",
                 magic_enum::enum_name(mode2.vertical_resolution), mode2.allow_dma, mode2.enable_vblank_interrupt,
                 mode2.enable_rendering);
@@ -587,11 +595,13 @@ void VdpDevice::process_plane_b_table_address(Byte value) {
 void VdpDevice::process_sprite_table_address(Byte value) {
   const auto sprite = std::bit_cast<SpriteTableAddress>(value);
   sprite_table_address_ = kSpriteAddressScale * sprite.address;
-  spdlog::info("sprite table address: {:04x}", sprite_table_address_);
+  spdlog::debug("sprite table address: {:04x}", sprite_table_address_);
 }
 
 void VdpDevice::process_background_color(Byte value) {
   const auto background = std::bit_cast<BackgroundColor>(value);
+  background_color_palette_ = background.palette;
+  background_color_index_ = background.index;
   spdlog::debug("background color palette: {} index: {}", background.palette, background.index);
 }
 
@@ -608,6 +618,14 @@ void VdpDevice::process_mode3_set(Byte value) {
 
 void VdpDevice::process_mode4_set(Byte value) {
   const auto mode4 = std::bit_cast<Mode4>(value);
+  width_ = std::invoke([&] {
+    switch (mode4.horizontal_resolution) {
+    case Mode4::HorizontalResolution::H32:
+      return 32;
+    case Mode4::HorizontalResolution::H40:
+      return 40;
+    }
+  });
   spdlog::debug("mode4 set horizontal_resolution: {} interlaced_mode: {} enable_shadow_highlight: {}",
                 magic_enum::enum_name(mode4.horizontal_resolution), magic_enum::enum_name(mode4.interlaced_mode),
                 mode4.enable_shadow_highlight);

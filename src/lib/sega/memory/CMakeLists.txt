@@ -9,4 +9,4 @@ add_library(
     vdp_device.cpp
     z80_device.cpp
 )
-target_link_libraries(sega_memory memory)
+target_link_libraries(sega_memory memory spdlog::spdlog_header_only fmt::fmt-header-only)

@@ -23,12 +23,7 @@ public:
     return colors_[palette_idx][color_idx];
   }
 
-  decltype(auto) palette_enabled(this auto&& self, size_t idx) {
-    return self.palette_enabled_[idx];
-  }
-
 private:
-  std::array<bool, kPaletteCount> palette_enabled_{true, true, true, true};
   std::array<Palette, kPaletteCount> colors_;
 };
 

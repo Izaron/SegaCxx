@@ -5,6 +5,7 @@
 #include <optional>
 #include <utility>
 
+#include "fmt/format.h"
 #include "lib/common/error/error.h"
 #include "types.h"
 
@@ -44,6 +45,19 @@ private:
 
 class WriteOnlyDevice : public Device {
 private:
+  std::optional<Error> read(AddressType addr, MutableDataView data) override {
+    return Error{Error::ProtectedRead,
+                       fmt::format("protected read address: {:06x} size: {:x}", addr, data.size())};
+  }
+};
+
+class DummyDevice final : public Device {
+private:
+  std::optional<Error> write(AddressType addr, DataView data) override {
+    return Error{Error::ProtectedWrite,
+                       fmt::format("protected write address: {:06x} size: {:x}", addr, data.size())};
+  }
+
   std::optional<Error> read(AddressType addr, MutableDataView data) override {
     return Error{Error::ProtectedRead,
                        fmt::format("protected read address: {:06x} size: {:x}", addr, data.size())};

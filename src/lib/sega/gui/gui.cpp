@@ -53,8 +53,7 @@ std::string make_title(const Metadata& metadata) {
 
 } // namespace
 
-Gui::Gui(Executor& executor)
-    : executor_{executor}, tilemap_{executor_.vdp_device()}, sprite_table_{executor_.vdp_device(), colors_} {
+Gui::Gui(Executor& executor) : executor_{executor}, video_{executor_.vdp_device()}, tilemap_{executor_.vdp_device()} {
   std::locale::global(std::locale("en_US.utf8"));
 }
 
@@ -147,8 +146,8 @@ void Gui::loop() {
       condition_ = nullptr;
     }
 
-    // update core objects
-    colors_.update(executor_.vdp_device().cram_data());
+    // redraw video
+    video_.raw_draw();
 
     // render frame
     // start the Dear ImGui frame
@@ -390,12 +389,10 @@ void Gui::add_colors_window() {
       if (color_idx > 0) {
         ImGui::SameLine();
       }
-      const auto& color = colors_.color(palette_idx, color_idx);
+      const auto& color = video_.colors().color(palette_idx, color_idx);
       const auto tooltip = fmt::format("Palette {}, Color {}", palette_idx, color_idx);
       ImGui::ColorButton(tooltip.c_str(), color, ImGuiColorEditFlags_AlphaPreview, ImVec2{32, 32});
     }
-    ImGui::SameLine();
-    ImGui::Checkbox(fmt::format("Enabled##{}", palette_idx).c_str(), &colors_.palette_enabled(palette_idx));
   }
   ImGui::End();
 }
@@ -419,7 +416,7 @@ void Gui::add_tilemap_window() {
   const auto scale = 8 * static_cast<float>(tilemap_scale_);
   const auto width = scale * static_cast<float>(tilemap_.width());
   const auto height = scale * static_cast<float>(tilemap_.height());
-  ImGui::Image(tilemap_.draw(colors_.palette(tilemap_palette_)), ImVec2(width, height),
+  ImGui::Image(tilemap_.draw(video_.colors().palette(tilemap_palette_)), ImVec2(width, height),
                /*uv0=*/ImVec2(0, 0), /*uv1=*/ImVec2(1, 1), /*tint_col=*/ImVec4(1, 1, 1, 1),
                /*border_col=*/ImVec4(1, 1, 1, 1));
   ImGui::End();
@@ -433,8 +430,8 @@ void Gui::add_sprite_table_window() {
   ImGui::SliderInt("Scale##Sprite Table", &sprite_scale_, /*v_min=*/1, /*v_max=*/8);
 
   if (ImGui::Button("Draw Sprites") || sprite_table_auto_update_) {
-    sprites_ = sprite_table_.read_sprites();
-    sprite_textures_ = sprite_table_.draw_sprites();
+    sprites_ = video_.sprite_table().read_sprites();
+    sprite_textures_ = video_.sprite_table().draw_sprites();
   }
 
   static constexpr ImGuiTableFlags kFlags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg;
