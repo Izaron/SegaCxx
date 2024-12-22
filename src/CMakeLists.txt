@@ -78,6 +78,14 @@ FetchContent_Declare(magic_enum_external
 FetchContent_MakeAvailable(magic_enum_external)
 include_directories(${magic_enum_external_SOURCE_DIR}/include)
 
+# external package: stb_image_write
+FetchContent_Declare(stb_external
+    URL https://github.com/nothings/stb/archive/refs/heads/master.zip
+    EXCLUDE_FROM_ALL
+)
+FetchContent_MakeAvailable(stb_external)
+include_directories(${stb_external_SOURCE_DIR})
+
 # add subdirectories
 add_subdirectory(bin)
 add_subdirectory(lib)
