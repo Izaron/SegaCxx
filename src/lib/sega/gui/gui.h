@@ -49,6 +49,7 @@ private:
 
   // Game window
   bool show_game_window_{true};
+  int game_scale_{1};
   Video video_;
 
   // Execution window

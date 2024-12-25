@@ -14,6 +14,7 @@
 #include "lib/sega/executor/executor.h"
 #include "lib/sega/rom_loader/rom_loader.h"
 #include "lib/sega/video/colors.h"
+#include "lib/sega/video/constants.h"
 #include "magic_enum/magic_enum.hpp"
 #include <array>
 #include <bit>
@@ -147,7 +148,7 @@ void Gui::loop() {
     }
 
     // redraw video
-    video_.raw_draw();
+    video_.update();
 
     // render frame
     // start the Dear ImGui frame
@@ -249,7 +250,18 @@ void Gui::add_main_window() {
   ImGui::End();
 }
 
-void Gui::add_game_window() {}
+void Gui::add_game_window() {
+  ImGui::Begin("Game", &show_game_window_, ImGuiWindowFlags_AlwaysAutoResize);
+  ImGui::SliderInt("Scale##Game", &game_scale_, /*v_min=*/1, /*v_max=*/8);
+  const auto texture = video_.draw();
+  const auto scale = kTileDimension * static_cast<float>(game_scale_);
+  const auto width = scale * static_cast<float>(video_.width());
+  const auto height = scale * static_cast<float>(video_.height());
+  ImGui::Image(texture, ImVec2(width, height),
+               /*uv0=*/ImVec2(0, 0), /*uv1=*/ImVec2(1, 1), /*tint_col=*/ImVec4(1, 1, 1, 1),
+               /*border_col=*/ImVec4(1, 1, 1, 1));
+  ImGui::End();
+}
 
 void Gui::add_execution_window() {
   ImGui::Begin("Execution", &show_execution_window_, ImGuiWindowFlags_AlwaysAutoResize);

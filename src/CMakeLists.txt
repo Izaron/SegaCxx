@@ -6,15 +6,26 @@ project(segacxx VERSION 0.1 LANGUAGES CXX)
 # compiler settings
 set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lc++abi")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 add_compile_options(-Wno-format)
+add_compile_options(-Wno-nan-infinity-disabled)
 add_compile_options(-fno-exceptions)
-add_compile_options(-g)
-add_compile_options(-fsanitize=undefined,address)
-add_link_options(-fsanitize=undefined,address)
+add_compile_options(-fno-rtti)
+#add_compile_options(-g)
+#add_compile_options(-fsanitize=undefined,address)
+#add_link_options(-fsanitize=undefined,address)
+
+set(CMAKE_CXX_FLAGS_RELEASE
+    "${CMAKE_CXX_FLAGS_RELEASE} \
+     -Ofast \
+     -march=native \
+     -flto \
+     -funroll-loops \
+     -ffast-math"
+)
 
 # add local packages
 find_package(SDL2 REQUIRED)

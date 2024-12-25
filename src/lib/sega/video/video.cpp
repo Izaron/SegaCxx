@@ -1,4 +1,6 @@
 #include "video.h"
+#include "SDL_opengl.h"
+#include "imgui.h"
 #include "lib/sega/memory/vdp_device.h"
 #include "lib/sega/video/constants.h"
 #include "spdlog/spdlog.h"
@@ -10,7 +12,7 @@ namespace sega {
 
 Video::Video(const VdpDevice& vdp_device) : vdp_device_{vdp_device}, sprite_table_{vdp_device_, colors_} {}
 
-std::span<const uint8_t> Video::raw_draw() {
+std::span<const uint8_t> Video::update() {
   check_size();
   colors_.update(vdp_device_.cram_data());
   const auto sprites = sprite_table_.read_sprites();
@@ -28,12 +30,15 @@ std::span<const uint8_t> Video::raw_draw() {
       // check if the current pixel inside the box
       if ((left <= x && x < right) && (top <= y && y < bottom)) {
         // calculate tile id and pixel coordinate inside it
-        size_t tile_x = (x - left) / kTileDimension;
-        size_t tile_y = (y - top) / kTileDimension;
+        size_t x_pos = sprite.flip_horizontally ? (right - x - 1) : (x - left);
+        size_t y_pos = sprite.flip_vertically ? (bottom - y - 1) : (y - top);
+
+        size_t tile_x = x_pos / kTileDimension;
+        size_t tile_y = y_pos / kTileDimension;
         size_t tile_id = sprite.tile_id + tile_x * sprite.height + tile_y;
 
-        size_t inside_x = (x - left) % kTileDimension;
-        size_t inside_y = (y - top) % kTileDimension;
+        size_t inside_x = x_pos % kTileDimension;
+        size_t inside_y = y_pos % kTileDimension;
         size_t pixel_id = inside_y * kTileDimension + inside_x;
 
         const auto* vram_ptr = vdp_device_.vram_data().data() + kVramBytesPerTile * tile_id;
@@ -73,6 +78,13 @@ std::span<const uint8_t> Video::raw_draw() {
   return canvas_;
 }
 
+ImTextureID Video::draw() {
+  glBindTexture(GL_TEXTURE_2D, texture_);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width_ * kTileDimension, height_ * kTileDimension, 0, GL_RGBA,
+               GL_UNSIGNED_BYTE, canvas_.data());
+  return texture_;
+}
+
 void Video::check_size() {
   bool size_changed{};
   if (const auto vdp_width = vdp_device_.tile_width(); vdp_width != width_) {
@@ -88,6 +100,19 @@ void Video::check_size() {
   if (size_changed) {
     // RGBA encoding
     canvas_.resize((kTileDimension * width_) * (kTileDimension * height_) * 4);
+
+    // free old texture if present
+    if (texture_) {
+      glDeleteTextures(1, &texture_);
+    }
+
+    // alloc new texture if non-zero
+    glGenTextures(1, &texture_);
+    glBindTexture(GL_TEXTURE_2D, texture_);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width_ * kTileDimension, height_ * kTileDimension, 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, canvas_.data());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   }
 }
 

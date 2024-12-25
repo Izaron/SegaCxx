@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
 
   // make game drawer and draw to a PNG file
   Video video{vdp_device};
-  const auto data = video.raw_draw();
+  const auto data = video.update();
   save_to_png(image_path, vdp_device.tile_width() * kTileDimension, vdp_device.tile_height() * kTileDimension, data);
 
   return 0;
