@@ -576,20 +576,20 @@ void VdpDevice::process_mode2_set(Byte value) {
 
 void VdpDevice::process_plane_a_table_address(Byte value) {
   const auto plane_a = std::bit_cast<PlaneATableAddress>(value);
-  const AddressType address = kPlaneAddressScale * plane_a.address;
-  spdlog::debug("plane A table address: {:04x}", address);
+  plane_a_table_address_ = kPlaneAddressScale * plane_a.address;
+  spdlog::debug("plane A table address: {:04x}", plane_a_table_address_);
 }
 
 void VdpDevice::process_window_table_address(Byte value) {
   const auto window = std::bit_cast<WindowTableAddress>(value);
-  const AddressType address = kWindowAddressScale * window.address;
-  spdlog::debug("window table address: {:04x}", address);
+  window_table_address_ = kWindowAddressScale * window.address;
+  spdlog::debug("window table address: {:04x}", window_table_address_);
 }
 
 void VdpDevice::process_plane_b_table_address(Byte value) {
   const auto plane_b = std::bit_cast<PlaneBTableAddress>(value);
-  const AddressType address = kPlaneAddressScale * plane_b.address;
-  spdlog::debug("plane B table address: {:04x}", address);
+  plane_b_table_address_ = kPlaneAddressScale * plane_b.address;
+  spdlog::debug("plane B table address: {:04x}", plane_b_table_address_);
 }
 
 void VdpDevice::process_sprite_table_address(Byte value) {

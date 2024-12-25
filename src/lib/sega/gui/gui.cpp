@@ -15,6 +15,7 @@
 #include "lib/sega/rom_loader/rom_loader.h"
 #include "lib/sega/video/colors.h"
 #include "lib/sega/video/constants.h"
+#include "lib/sega/video/plane.h"
 #include "magic_enum/magic_enum.hpp"
 #include <array>
 #include <bit>
@@ -27,6 +28,7 @@
 #include <spdlog/spdlog.h>
 #include <sstream>
 #include <string>
+#include <string_view>
 
 // reference: https://github.com/ocornut/imgui/blob/master/examples/example_sdl2_opengl3/main.cpp
 
@@ -54,7 +56,10 @@ std::string make_title(const Metadata& metadata) {
 
 } // namespace
 
-Gui::Gui(Executor& executor) : executor_{executor}, video_{executor_.vdp_device()}, tilemap_{executor_.vdp_device()} {
+Gui::Gui(Executor& executor)
+    : executor_{executor}, video_{executor_.vdp_device()}, tilemap_{executor_.vdp_device()},
+      planes_{Plane{executor_.vdp_device(), PlaneType::PlaneA}, Plane{executor_.vdp_device(), PlaneType::PlaneB},
+              Plane{executor_.vdp_device(), PlaneType::Window}} {
   std::locale::global(std::locale("en_US.utf8"));
 }
 
@@ -170,6 +175,11 @@ void Gui::loop() {
     if (show_tilemap_window_) {
       add_tilemap_window();
     }
+    for (size_t i = 0; i < kPlaneTypes; ++i) {
+      if (show_plane_window_[i]) {
+        add_plane_window(static_cast<PlaneType>(i));
+      }
+    }
     if (show_sprite_table_window_) {
       add_sprite_table_window();
     }
@@ -208,6 +218,9 @@ void Gui::add_main_window() {
   ImGui::Checkbox("Execution Window", &show_execution_window_);
   ImGui::Checkbox("Colors Window", &show_colors_window_);
   ImGui::Checkbox("Tilemap Window", &show_tilemap_window_);
+  ImGui::Checkbox("\"Plane A\" Plane Window", &show_plane_window_[0]);
+  ImGui::Checkbox("\"Plane B\" Plane Window", &show_plane_window_[1]);
+  ImGui::Checkbox("\"Window\" Plane Window", &show_plane_window_[2]);
   ImGui::Checkbox("Sprite Table Window", &show_sprite_table_window_);
   ImGui::Checkbox("Demo Window", &show_demo_window_);
   if (ImGui::Button("Save Dump")) {
@@ -429,6 +442,35 @@ void Gui::add_tilemap_window() {
   const auto width = scale * static_cast<float>(tilemap_.width());
   const auto height = scale * static_cast<float>(tilemap_.height());
   ImGui::Image(tilemap_.draw(video_.colors().palette(tilemap_palette_)), ImVec2(width, height),
+               /*uv0=*/ImVec2(0, 0), /*uv1=*/ImVec2(1, 1), /*tint_col=*/ImVec4(1, 1, 1, 1),
+               /*border_col=*/ImVec4(1, 1, 1, 1));
+  ImGui::End();
+}
+
+void Gui::add_plane_window(PlaneType plane_type) {
+  const size_t plane_idx = static_cast<size_t>(plane_type);
+  static constexpr std::array<std::string_view, kPlaneTypes> kNames = {
+      "Plane A plane",
+      "Plane B plane",
+      "Window plane",
+  };
+  static constexpr std::array<std::string_view, kPlaneTypes> kScaleLabel = {
+      "Scale##PlaneA",
+      "Scale##PlaneB",
+      "Scale##Window",
+  };
+
+  ImGui::Begin(kNames[plane_idx].data(), &show_plane_window_[plane_idx], ImGuiWindowFlags_AlwaysAutoResize);
+  ImGui::Text("Tilemap Size =");
+  ImGui::SameLine();
+  ImGui::TextColored(kSizeColor, "%dx%d", planes_[plane_idx].width(), planes_[plane_idx].height());
+
+  ImGui::SliderInt(kScaleLabel[plane_idx].data(), &plane_scale_[plane_idx], /*v_min=*/1, /*v_max=*/5);
+
+  const auto scale = 8 * static_cast<float>(plane_scale_[plane_idx]);
+  const auto width = scale * static_cast<float>(planes_[plane_idx].width());
+  const auto height = scale * static_cast<float>(planes_[plane_idx].height());
+  ImGui::Image(planes_[plane_idx].draw(video_.colors()), ImVec2(width, height),
                /*uv0=*/ImVec2(0, 0), /*uv1=*/ImVec2(1, 1), /*tint_col=*/ImVec4(1, 1, 1, 1),
                /*border_col=*/ImVec4(1, 1, 1, 1));
   ImGui::End();

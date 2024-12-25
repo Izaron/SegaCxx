@@ -33,6 +33,15 @@ public:
   uint8_t tilemap_height() const {
     return tilemap_height_;
   }
+  Word plane_a_table_address() const {
+    return plane_a_table_address_;
+  }
+  Word plane_b_table_address() const {
+    return plane_b_table_address_;
+  }
+  Word window_table_address() const {
+    return window_table_address_;
+  }
   Word sprite_table_address() const {
     return sprite_table_address_;
   }
@@ -115,6 +124,9 @@ private:
   uint8_t height_{};
   uint8_t tilemap_width_{};
   uint8_t tilemap_height_{};
+  Word plane_a_table_address_{};
+  Word plane_b_table_address_{};
+  Word window_table_address_{};
   Word sprite_table_address_{};
   uint8_t background_color_palette_{};
   uint8_t background_color_index_{};

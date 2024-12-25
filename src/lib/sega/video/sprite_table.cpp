@@ -22,7 +22,7 @@ struct SpriteEntry {
   uint8_t width : 2;  // in tiles minus one
   uint8_t _ : 4;
 
-  // 4th byte
+  // byte 4
   uint8_t sprite_link;
 
   // byte 5

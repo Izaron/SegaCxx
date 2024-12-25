@@ -2,6 +2,7 @@
 #include "SDL_video.h"
 #include "imgui.h"
 #include "lib/sega/executor/executor.h"
+#include "lib/sega/video/plane.h"
 #include "lib/sega/video/sprite_table.h"
 #include "lib/sega/video/tilemap.h"
 #include "lib/sega/video/video.h"
@@ -39,6 +40,9 @@ private:
   // Tilemap window
   void add_tilemap_window();
 
+  // Plane window
+  void add_plane_window(PlaneType plane_type);
+
   // Sprite table window
   void add_sprite_table_window();
 
@@ -66,6 +70,11 @@ private:
   int tilemap_scale_{1};
   int tilemap_palette_{};
   Tilemap tilemap_;
+
+  // Plane A / Plane B / Window planes
+  std::array<bool, kPlaneTypes> show_plane_window_{};
+  std::array<int, kPlaneTypes> plane_scale_{1, 1, 1};
+  std::array<Plane, kPlaneTypes> planes_;
 
   // Sprite table window
   bool show_sprite_table_window_{false};
