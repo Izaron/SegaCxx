@@ -73,8 +73,10 @@ ImTextureID Plane::draw(const Colors& colors) {
 
       for (size_t tile_j = 0; tile_j < kTileDimension; ++tile_j) {
         for (size_t tile_i = 0; tile_i < kTileDimension; ++tile_i) {
-          const auto pixel_i = i * kTileDimension + tile_i;
-          const auto pixel_j = j * kTileDimension + tile_j;
+          const auto pixel_i =
+              i * kTileDimension + (nametable_entry.flip_horizontally ? (kTileDimension - tile_i - 1) : tile_i);
+          const auto pixel_j =
+              j * kTileDimension + (nametable_entry.flip_vertically ? (kTileDimension - tile_j - 1) : tile_j);
           const auto pixel_idx = pixel_j * (kTileDimension * width_) + pixel_i;
           auto* canvas_ptr = canvas_.data() + kBytesPerPixel * pixel_idx;
 
