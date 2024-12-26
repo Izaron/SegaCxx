@@ -416,7 +416,9 @@ void Gui::add_colors_window() {
       }
       const auto& color = video_.colors().color(palette_idx, color_idx);
       const auto tooltip = fmt::format("Palette {}, Color {}", palette_idx, color_idx);
-      ImGui::ColorButton(tooltip.c_str(), color, ImGuiColorEditFlags_AlphaPreview, ImVec2{32, 32});
+      ImVec4 gui_color{static_cast<float>(color.red) / 255, static_cast<float>(color.green) / 255,
+                       static_cast<float>(color.blue) / 255, (color_idx == 0) ? 0.75f : 1.0f};
+      ImGui::ColorButton(tooltip.c_str(), gui_color, ImGuiColorEditFlags_AlphaPreview, ImVec2{32, 32});
     }
   }
   ImGui::End();

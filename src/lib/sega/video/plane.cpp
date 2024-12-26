@@ -96,9 +96,9 @@ ImTextureID Plane::draw(const Colors& colors) {
           } else {
             // color from palette
             const auto& color = colors.color(nametable_entry.palette, cram_color);
-            *canvas_ptr++ = static_cast<uint8_t>(color.x * 255.0f);
-            *canvas_ptr++ = static_cast<uint8_t>(color.y * 255.0f);
-            *canvas_ptr++ = static_cast<uint8_t>(color.z * 255.0f);
+            *canvas_ptr++ = color.red;
+            *canvas_ptr++ = color.green;
+            *canvas_ptr++ = color.blue;
             *canvas_ptr++ = 255;
           }
         }

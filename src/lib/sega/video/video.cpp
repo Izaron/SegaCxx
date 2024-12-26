@@ -48,9 +48,9 @@ std::span<const uint8_t> Video::update() {
         if (cram_color != 0) {
           // color from palette
           const auto& color = colors_.palette(sprite.palette)[cram_color];
-          *canvas_ptr++ = static_cast<uint8_t>(color.x * 255.0f);
-          *canvas_ptr++ = static_cast<uint8_t>(color.y * 255.0f);
-          *canvas_ptr++ = static_cast<uint8_t>(color.z * 255.0f);
+          *canvas_ptr++ = color.red;
+          *canvas_ptr++ = color.green;
+          *canvas_ptr++ = color.blue;
           *canvas_ptr++ = 255;
           return true;
         }
@@ -68,9 +68,9 @@ std::span<const uint8_t> Video::update() {
 
       // draw the background
       const auto& color = colors_.palette(vdp_device_.background_color_palette())[vdp_device_.background_color_index()];
-      *canvas_ptr++ = static_cast<uint8_t>(color.x * 255.0f);
-      *canvas_ptr++ = static_cast<uint8_t>(color.y * 255.0f);
-      *canvas_ptr++ = static_cast<uint8_t>(color.z * 255.0f);
+      *canvas_ptr++ = color.red;
+      *canvas_ptr++ = color.green;
+      *canvas_ptr++ = color.blue;
       *canvas_ptr++ = 255;
     }
   }
