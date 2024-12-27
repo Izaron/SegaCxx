@@ -10,6 +10,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
 #include <fmt/core.h>
 #include <functional>
@@ -171,20 +172,8 @@ struct Mode2 {
 static_assert(sizeof(Mode2) == 1);
 
 struct Mode3 {
-  enum class HorizontalScrollMode : uint8_t {
-    FullScroll = 0b00,
-    ScrollEightLines = 0b01,
-    ScrollEveryTile = 0b10,
-    ScrollEveryLine = 0b11,
-  };
-
-  enum class VerticalScrollMode : uint8_t {
-    FullScroll = 0,
-    ScrollEveryTwoTiles = 1,
-  };
-
-  HorizontalScrollMode horizontal_scroll_mode : 2;
-  VerticalScrollMode vertical_scroll_mode : 1;
+  VdpDevice::HorizontalScrollMode horizontal_scroll_mode : 2;
+  VdpDevice::VerticalScrollMode vertical_scroll_mode : 1;
   bool enable_external_interrupt : 1;
   bool : 4;
 };
@@ -447,8 +436,8 @@ std::optional<Error> VdpDevice::process_vdp_control(Word command) {
 }
 
 std::optional<Error> VdpDevice::process_vdp_data(Word data) {
-  if (use_dma_) {
-    assert(dma_type_ == DmaType::VramFill);
+  if (use_dma_ && dma_type_ != DmaType::VramFill) {
+    std::abort();
   }
 
   if (use_dma_ && dma_type_ == DmaType::VramFill) {
@@ -611,6 +600,8 @@ void VdpDevice::process_hblank_interrupt_rate(Byte value) {
 
 void VdpDevice::process_mode3_set(Byte value) {
   const auto mode3 = std::bit_cast<Mode3>(value);
+  horizontal_scroll_mode_ = mode3.horizontal_scroll_mode;
+  vertical_scroll_mode_ = mode3.vertical_scroll_mode;
   spdlog::debug("mode3 set horizontal_scroll_mode: {} vertical_scroll_mode: {} enable_external_interrupt: {}",
                 magic_enum::enum_name(mode3.horizontal_scroll_mode), magic_enum::enum_name(mode3.vertical_scroll_mode),
                 mode3.enable_external_interrupt);
@@ -634,6 +625,7 @@ void VdpDevice::process_mode4_set(Byte value) {
 void VdpDevice::process_hscroll_table_address(Byte value) {
   const auto hscroll = std::bit_cast<HscrollTableAddress>(value);
   const AddressType address = kHscrollAddressScale * hscroll.address;
+  hscroll_table_address_ = address;
   spdlog::debug("hscroll table address: {:04x}", address);
 }
 
@@ -662,14 +654,19 @@ void VdpDevice::process_tilemap_size(Byte value) {
 
 void VdpDevice::process_window_x_division(Byte value) {
   const auto window = std::bit_cast<WindowXDivision>(value);
-  spdlog::debug("window X division x_split_coordinate: {} display_to_the_right: {}", window.split_coordinate * 16,
-                window.display_to_the_right);
+  window_x_split_ = window.split_coordinate * 16;
+  window_display_to_the_right_ = window.display_to_the_right;
+  window_split_mode_ = WindowSplitMode::X;
+  spdlog::debug("window X division x_split_coordinate: {} display_to_the_right: {}", window_x_split_,
+                window_display_to_the_right_);
 }
 
 void VdpDevice::process_window_y_division(Byte value) {
   const auto window = std::bit_cast<WindowYDivision>(value);
-  spdlog::debug("window Y division y_split_coordinate: {} display_below: {}", window.split_coordinate * 8,
-                window.display_below);
+  window_y_split_ = window.split_coordinate * 8;
+  window_display_below_ = window.display_below;
+  window_split_mode_ = WindowSplitMode::Y;
+  spdlog::debug("window Y division y_split_coordinate: {} display_below: {}", window_y_split_, window_display_below_);
 }
 
 void VdpDevice::process_dma_length_low(Byte value) {

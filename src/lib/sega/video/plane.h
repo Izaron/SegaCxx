@@ -18,6 +18,19 @@ enum class PlaneType {
   Window,
 };
 
+struct NametableEntry {
+  // byte 1
+  uint8_t tile_id_high : 3;
+  bool flip_horizontally : 1;
+  bool flip_vertically : 1;
+  uint8_t palette : 2;
+  uint8_t priority : 1;
+
+  // byte 2
+  uint8_t tile_id_low;
+};
+static_assert(sizeof(NametableEntry) == 2);
+
 class Plane {
 public:
   Plane(const VdpDevice& vdp_device, PlaneType type);

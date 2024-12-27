@@ -15,36 +15,85 @@ public:
   static constexpr AddressType kBegin = 0xC00000;
   static constexpr AddressType kEnd = 0xC00005;
 
+  enum class HorizontalScrollMode : uint8_t {
+    FullScroll = 0b00,
+    ScrollEightLinesThenRepeat = 0b01,
+    ScrollEveryTile = 0b10,
+    ScrollEveryLine = 0b11,
+  };
+
+  enum class VerticalScrollMode : uint8_t {
+    FullScroll = 0,
+    ScrollEveryTwoTiles = 1,
+  };
+
+  enum class WindowSplitMode {
+    X,
+    Y,
+  };
+
+public:
   VdpDevice(Device& bus_device);
 
   // data from registers
   bool vblank_interrupt_enabled() const {
     return vblank_interrupt_enabled_;
   }
+
   uint8_t tile_width() const {
     return width_;
   }
   uint8_t tile_height() const {
     return height_;
   }
+
   uint8_t tilemap_width() const {
     return tilemap_width_;
   }
   uint8_t tilemap_height() const {
     return tilemap_height_;
   }
+
+  HorizontalScrollMode horizontal_scroll_mode() const {
+    return horizontal_scroll_mode_;
+  }
+  VerticalScrollMode vertical_scroll_mode() const {
+    return vertical_scroll_mode_;
+  }
+  Word hscroll_table_address() const {
+    return hscroll_table_address_;
+  }
+
   Word plane_a_table_address() const {
     return plane_a_table_address_;
   }
   Word plane_b_table_address() const {
     return plane_b_table_address_;
   }
+
   Word window_table_address() const {
     return window_table_address_;
   }
+  WindowSplitMode window_split_mode() const {
+    return window_split_mode_;
+  }
+  uint16_t window_x_split() const {
+    return window_x_split_;
+  }
+  uint16_t window_y_split() const {
+    return window_y_split_;
+  }
+  bool window_display_to_the_right() const {
+    return window_display_to_the_right_;
+  }
+  bool window_display_below() const {
+    return window_display_below_;
+  }
+
   Word sprite_table_address() const {
     return sprite_table_address_;
   }
+
   uint8_t background_color_palette() const {
     return background_color_palette_;
   }
@@ -116,18 +165,34 @@ private:
 private:
   // data from registers
   bool vblank_interrupt_enabled_{};
+
   Long dma_length_words_{}; // warning - size in words, not in bytes
   Long dma_source_words_{}; // warning - size in words, not in bytes
   DmaType dma_type_{DmaType::MemoryToVram};
   Byte auto_increment_{};
+
   uint8_t width_{};
   uint8_t height_{};
+
   uint8_t tilemap_width_{};
   uint8_t tilemap_height_{};
+
+  HorizontalScrollMode horizontal_scroll_mode_{};
+  VerticalScrollMode vertical_scroll_mode_{};
+  Word hscroll_table_address_{};
+
   Word plane_a_table_address_{};
   Word plane_b_table_address_{};
+
   Word window_table_address_{};
+  WindowSplitMode window_split_mode_{};
+  uint16_t window_x_split_{};
+  uint16_t window_y_split_{};
+  bool window_display_to_the_right_{};
+  bool window_display_below_{};
+
   Word sprite_table_address_{};
+
   uint8_t background_color_palette_{};
   uint8_t background_color_index_{};
 

@@ -265,7 +265,13 @@ void Gui::add_main_window() {
 
 void Gui::add_game_window() {
   ImGui::Begin("Game", &show_game_window_, ImGuiWindowFlags_AlwaysAutoResize);
+
+  ImGui::Text("Window Size =");
+  ImGui::SameLine();
+  ImGui::TextColored(kSizeColor, "%dx%d", video_.width() * kTileDimension, video_.height() * kTileDimension);
+
   ImGui::SliderInt("Scale##Game", &game_scale_, /*v_min=*/1, /*v_max=*/8);
+
   const auto texture = video_.draw();
   const auto scale = kTileDimension * static_cast<float>(game_scale_);
   const auto width = scale * static_cast<float>(video_.width());
