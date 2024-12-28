@@ -114,8 +114,8 @@ bool Gui::setup() {
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImGuiIO& io = ImGui::GetIO();
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // enable keyboard controls
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // enable gamepad controls
+  // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // enable keyboard controls
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // enable gamepad controls
 
   // setup Dear ImGui style
   ImGui::StyleColorsDark();

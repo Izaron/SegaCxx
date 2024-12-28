@@ -24,17 +24,17 @@ std::span<const uint8_t> Video::update() {
 
   auto* canvas_ptr = canvas_.data();
 
-  const auto try_draw_sprite = [&](size_t x, size_t y, bool priority) -> bool {
+  const auto try_draw_sprite = [&](int x, int y, bool priority) -> bool {
     for (const auto& sprite : sprites) {
       if (sprite.priority != priority) {
         continue;
       }
 
       // calculate sprite box
-      size_t left = sprite.x_coord - 128;
-      size_t right = left + sprite.width * kTileDimension;
-      size_t top = sprite.y_coord - 128;
-      size_t bottom = top + sprite.height * kTileDimension;
+      int left = sprite.x_coord - 128;
+      int right = left + static_cast<int>(sprite.width * kTileDimension);
+      int top = sprite.y_coord - 128;
+      int bottom = top + static_cast<int>(sprite.height * kTileDimension);
 
       // check if the current pixel inside the box
       if ((left <= x && x < right) && (top <= y && y < bottom)) {
@@ -68,7 +68,7 @@ std::span<const uint8_t> Video::update() {
     return false;
   };
 
-  const auto try_draw_plane = [&](PlaneType plane_type, size_t x, size_t y, bool priority) -> bool {
+  const auto try_draw_plane = [&](PlaneType plane_type, int x, int y, bool priority) -> bool {
     if (plane_type == PlaneType::Window) {
       if (vdp_device_.window_split_mode() == VdpDevice::WindowSplitMode::X) {
         if (vdp_device_.window_display_to_the_right() && x < vdp_device_.window_x_split()) {
@@ -164,8 +164,8 @@ std::span<const uint8_t> Video::update() {
   };
 
   // draw each scanline, so iterate from left to right
-  for (size_t y = 0; y < height_ * kTileDimension; ++y) {
-    for (size_t x = 0; x < width_ * kTileDimension; ++x) {
+  for (int y = 0; y < height_ * kTileDimension; ++y) {
+    for (int x = 0; x < width_ * kTileDimension; ++x) {
       const bool result = std::invoke([&] -> bool {
         for (const bool priority : {true, false}) {
           if (try_draw_sprite(x, y, priority)) {
