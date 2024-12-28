@@ -26,6 +26,9 @@ public:
     Start = 7,
   };
 
+  // only for 0th controller currently
+  void set_button(Button button, bool pressed);
+
 private:
   std::optional<Error> read(AddressType addr, MutableDataView data) override;
   std::optional<Error> write(AddressType addr, DataView data) override;

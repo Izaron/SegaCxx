@@ -12,6 +12,7 @@
 #include "imgui_impl_sdl2.h"
 #include "lib/common/memory/types.h"
 #include "lib/sega/executor/executor.h"
+#include "lib/sega/memory/controller_device.h"
 #include "lib/sega/rom_loader/rom_loader.h"
 #include "lib/sega/video/colors.h"
 #include "lib/sega/video/constants.h"
@@ -29,6 +30,7 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <utility>
 
 // reference: https://github.com/ocornut/imgui/blob/master/examples/example_sdl2_opengl3/main.cpp
 
@@ -63,6 +65,17 @@ Gui::Gui(Executor& executor)
   std::locale::global(std::locale("en_US.utf8"));
 }
 
+Gui::~Gui() {
+  // cleanup
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplSDL2_Shutdown();
+  ImGui::DestroyContext();
+
+  SDL_GL_DeleteContext(gl_context_);
+  SDL_DestroyWindow(window_);
+  SDL_Quit();
+}
+
 bool Gui::setup() {
   // setup SDL
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) {
@@ -95,7 +108,7 @@ bool Gui::setup() {
 
   gl_context_ = SDL_GL_CreateContext(window_);
   SDL_GL_MakeCurrent(window_, gl_context_);
-  SDL_GL_SetSwapInterval(1); // enable vsync
+  // SDL_GL_SetSwapInterval(1); // enable vsync
 
   // setup Dear ImGui context
   IMGUI_CHECKVERSION();
@@ -118,96 +131,114 @@ bool Gui::setup() {
 }
 
 void Gui::loop() {
-  bool done = false;
-  while (!done) {
-    // poll events
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-      ImGui_ImplSDL2_ProcessEvent(&event);
-      if (event.type == SDL_QUIT) {
-        done = true;
-      }
-      if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE &&
-          event.window.windowID == SDL_GetWindowID(window_)) {
-        done = true;
-      }
-      if (SDL_GetWindowFlags(window_) & SDL_WINDOW_MINIMIZED) {
-        SDL_Delay(10);
-      }
-    }
-
-    // execute instructions while condition is set or there is a VBlank
-    while (condition_ && !condition_()) {
-      const auto result = executor_.execute_current_instruction();
-      ++executed_count_;
-      if (!result.has_value()) {
-        spdlog::error("current instruction error kind: {} what: {}", magic_enum::enum_name(result.error().kind()),
-                      result.error().what());
-      }
-      if (result.value() == Executor::Result::VblankInterrupt) {
-        break;
-      }
-    }
-    if (condition_ && condition_()) {
-      condition_ = nullptr;
-    }
-
-    // redraw video
+  while (poll_events()) {
+    update_controller();
+    execute();
     video_.update();
-
-    // render frame
-    // start the Dear ImGui frame
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplSDL2_NewFrame();
-    ImGui::NewFrame();
-
-    // add windows
-    add_main_window();
-    if (show_game_window_) {
-      add_game_window();
-    }
-    if (show_execution_window_) {
-      add_execution_window();
-    }
-    if (show_colors_window_) {
-      add_colors_window();
-    }
-    if (show_tilemap_window_) {
-      add_tilemap_window();
-    }
-    for (size_t i = 0; i < kPlaneTypes; ++i) {
-      if (show_plane_window_[i]) {
-        add_plane_window(static_cast<PlaneType>(i));
-      }
-    }
-    if (show_sprite_table_window_) {
-      add_sprite_table_window();
-    }
-    if (show_demo_window_) {
-      ImGui::ShowDemoWindow(&show_demo_window_);
-    }
-
-    // rendering
-    ImGui::Render();
-    auto& io = ImGui::GetIO();
-    glViewport(0, 0, io.DisplaySize.x, io.DisplaySize.y);
-    glClearColor(kClearColor.x * kClearColor.w, kClearColor.y * kClearColor.w, kClearColor.z * kClearColor.w,
-                 kClearColor.w);
-    glClear(GL_COLOR_BUFFER_BIT);
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    SDL_GL_SwapWindow(window_);
+    render();
   }
 }
 
-Gui::~Gui() {
-  // cleanup
-  ImGui_ImplOpenGL3_Shutdown();
-  ImGui_ImplSDL2_Shutdown();
-  ImGui::DestroyContext();
+void Gui::execute() {
+  while (condition_ && !condition_()) {
+    const auto result = executor_.execute_current_instruction();
+    ++executed_count_;
+    if (!result.has_value()) {
+      spdlog::error("current instruction error kind: {} what: {}", magic_enum::enum_name(result.error().kind()),
+                    result.error().what());
+    }
+    if (result.value() == Executor::Result::VblankInterrupt) {
+      break;
+    }
+  }
+  if (condition_ && condition_()) {
+    condition_ = nullptr;
+  }
+}
 
-  SDL_GL_DeleteContext(gl_context_);
-  SDL_DestroyWindow(window_);
-  SDL_Quit();
+void Gui::render() {
+  // start the Dear ImGui frame
+  ImGui_ImplOpenGL3_NewFrame();
+  ImGui_ImplSDL2_NewFrame();
+  ImGui::NewFrame();
+
+  // add windows
+  add_main_window();
+  if (show_game_window_) {
+    add_game_window();
+  }
+  if (show_execution_window_) {
+    add_execution_window();
+  }
+  if (show_colors_window_) {
+    add_colors_window();
+  }
+  if (show_tilemap_window_) {
+    add_tilemap_window();
+  }
+  for (size_t i = 0; i < kPlaneTypes; ++i) {
+    if (show_plane_window_[i]) {
+      add_plane_window(static_cast<PlaneType>(i));
+    }
+  }
+  if (show_sprite_table_window_) {
+    add_sprite_table_window();
+  }
+  if (show_demo_window_) {
+    ImGui::ShowDemoWindow(&show_demo_window_);
+  }
+
+  // rendering
+  ImGui::Render();
+  auto& io = ImGui::GetIO();
+  glViewport(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+  glClearColor(kClearColor.x * kClearColor.w, kClearColor.y * kClearColor.w, kClearColor.z * kClearColor.w,
+               kClearColor.w);
+  glClear(GL_COLOR_BUFFER_BIT);
+  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+  SDL_GL_SwapWindow(window_);
+}
+
+bool Gui::poll_events() {
+  SDL_Event event;
+  while (SDL_PollEvent(&event)) {
+    ImGui_ImplSDL2_ProcessEvent(&event);
+    if (event.type == SDL_QUIT) {
+      return false;
+    }
+    if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE &&
+        event.window.windowID == SDL_GetWindowID(window_)) {
+      return false;
+    }
+    if (SDL_GetWindowFlags(window_) & SDL_WINDOW_MINIMIZED) {
+      SDL_Delay(10);
+    }
+  }
+  return true;
+}
+
+void Gui::update_controller() {
+  static constexpr std::array<std::pair<ImGuiKey, ControllerDevice::Button>, 8> kMap = {
+      std::make_pair(ImGuiKey_Enter, ControllerDevice::Button::Start),
+
+      std::make_pair(ImGuiKey_LeftArrow, ControllerDevice::Button::Left),
+      std::make_pair(ImGuiKey_RightArrow, ControllerDevice::Button::Right),
+      std::make_pair(ImGuiKey_UpArrow, ControllerDevice::Button::Up),
+      std::make_pair(ImGuiKey_DownArrow, ControllerDevice::Button::Down),
+
+      std::make_pair(ImGuiKey_A, ControllerDevice::Button::A),
+      std::make_pair(ImGuiKey_S, ControllerDevice::Button::B),
+      std::make_pair(ImGuiKey_D, ControllerDevice::Button::C),
+  };
+
+  auto& controller = executor_.controller_device();
+  for (const auto& [key, button] : kMap) {
+    if (ImGui::IsKeyPressed(key, /*repeat=*/false)) {
+      controller.set_button(button, true);
+    } else if (ImGui::IsKeyReleased(key)) {
+      controller.set_button(button, false);
+    }
+  }
 }
 
 void Gui::add_main_window() {

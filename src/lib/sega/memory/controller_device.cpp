@@ -70,6 +70,11 @@ static_assert(sizeof(Step2Value) == 1);
 
 } // namespace
 
+void ControllerDevice::set_button(Button button, bool pressed) {
+  auto& pressed_map = pressed_map_by_controller_[0];
+  pressed_map[std::to_underlying(button)] = pressed;
+}
+
 std::optional<Error> ControllerDevice::read(AddressType addr, MutableDataView data) {
   for (size_t i = 0; i < data.size(); ++i) {
     auto& value = data[i];

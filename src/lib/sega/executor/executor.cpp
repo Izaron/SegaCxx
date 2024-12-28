@@ -91,6 +91,10 @@ public:
             .description = inst->print()};
   }
 
+  ControllerDevice& controller_device() {
+    return controller_device_;
+  }
+
   const VdpDevice& vdp_device() const {
     return vdp_device_;
   }
@@ -159,6 +163,10 @@ void Executor::reset_interrupt_time() {
 
 Executor::InstructionInfo Executor::current_instruction_info() {
   return impl_->current_instruction_info();
+}
+
+ControllerDevice& Executor::controller_device() {
+  return impl_->controller_device();
 }
 
 const VdpDevice& Executor::vdp_device() const {

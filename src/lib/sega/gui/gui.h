@@ -16,11 +16,24 @@ namespace sega {
 class Gui {
 public:
   Gui(Executor& executor);
-  bool setup();
-  void loop();
   ~Gui();
 
+  bool setup();
+  void loop();
+
 private:
+  // Poll events, returns false if should stop
+  bool poll_events();
+
+  // Set info about pressed buttons
+  void update_controller();
+
+  // Execute instructions while conditions is met or there is a VBlank
+  void execute();
+
+  // Render whole screen
+  void render();
+
   // Main window
   void add_main_window();
 

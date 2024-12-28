@@ -2,6 +2,7 @@
 #include "lib/common/error/error.h"
 #include "lib/common/memory/types.h"
 #include "lib/m68k/registers/registers.h"
+#include "lib/sega/memory/controller_device.h"
 #include "lib/sega/memory/vdp_device.h"
 #include "lib/sega/rom_loader/rom_loader.h"
 #include <expected>
@@ -32,6 +33,7 @@ public:
   void reset_interrupt_time();
   InstructionInfo current_instruction_info();
 
+  ControllerDevice& controller_device();
   const VdpDevice& vdp_device() const;
   const VectorTable& vector_table() const;
   const Metadata& metadata() const;
