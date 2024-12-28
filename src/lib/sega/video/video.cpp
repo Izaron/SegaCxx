@@ -74,14 +74,14 @@ std::span<const uint8_t> Video::update() {
         if (vdp_device_.window_display_to_the_right() && x < vdp_device_.window_x_split()) {
           return false;
         }
-        if (not vdp_device_.window_display_to_the_right() && x > vdp_device_.window_x_split()) {
+        if (not vdp_device_.window_display_to_the_right() && x >= vdp_device_.window_x_split()) {
           return false;
         }
       } else {
         if (vdp_device_.window_display_below() && y < vdp_device_.window_y_split()) {
           return false;
         }
-        if (not vdp_device_.window_display_below() && y > vdp_device_.window_y_split()) {
+        if (not vdp_device_.window_display_below() && y >= vdp_device_.window_y_split()) {
           return false;
         }
       }
