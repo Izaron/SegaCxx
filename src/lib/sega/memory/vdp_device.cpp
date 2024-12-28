@@ -437,6 +437,7 @@ std::optional<Error> VdpDevice::process_vdp_control(Word command) {
 
 std::optional<Error> VdpDevice::process_vdp_data(Word data) {
   if (use_dma_ && dma_type_ != DmaType::VramFill) {
+    spdlog::error("unsupported DMA type");
     std::abort();
   }
 
@@ -725,7 +726,7 @@ Word VdpDevice::read_status_register() {
       .mode = StatusRegister::Mode::NTSC,
       .dma_status = StatusRegister::DmaStatus::NotBusy,
       .hblank_status = StatusRegister::HblankStatus::NotInHblank,
-      .vblank_status = StatusRegister::VblankStatus::NotInVblank, // TODO: provide correct value
+      .vblank_status = StatusRegister::VblankStatus::InVblank, // TODO: provide correct value
       .frame_status = StatusRegister::FrameStatus::EvenFrame,
       .collision_status = StatusRegister::CollisionStatus::NoCollision,
       .sprites_overflow_status = StatusRegister::SpritesOverflowStatus::NoSpritesOverflow,

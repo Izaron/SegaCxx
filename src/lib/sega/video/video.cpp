@@ -94,6 +94,7 @@ std::span<const uint8_t> Video::update() {
         x -= hscroll_ram_ptr[plane_type == PlaneType::PlaneA ? 0 : 1].get();
         break;
       case VdpDevice::HorizontalScrollMode::ScrollEightLinesThenRepeat:
+        spdlog::error("unsupported hscroll mode");
         std::abort(); // unsupported now, don't understand this mode
         break;
       case VdpDevice::HorizontalScrollMode::ScrollEveryTile:
