@@ -71,7 +71,7 @@ private:
 
   // Execution window
   bool show_execution_window_{true};
-  std::array<char, 6> until_address_{};
+  std::array<char, 7> until_address_{};
   std::function<bool()> condition_;
   uint32_t executed_count_{};
 

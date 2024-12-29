@@ -31,7 +31,7 @@ public:
   std::span<const ImTextureID> draw_sprites(); // call it after `read_sprites`
 
 private:
-  static constexpr size_t kMaxSprites = 80;
+  static constexpr size_t kMaxSprites = 100;
 
   const VdpDevice& vdp_device_;
   const Colors& colors_;

@@ -11,6 +11,7 @@
 #include "lib/sega/memory/rom_device.h"
 #include "lib/sega/memory/trademark_register_device.h"
 #include "lib/sega/memory/vdp_device.h"
+#include "lib/sega/memory/ym2612_device.h"
 #include "lib/sega/memory/z80_device.h"
 #include "lib/sega/rom_loader/rom_loader.h"
 #include "lib/sega/state_dump/state_dump.h"
@@ -39,6 +40,7 @@ public:
     const auto rom_address = metadata().rom_address;
     bus_.add_device({rom_address.begin.get(), rom_address.end.get()}, &rom_device_);
     bus_.add_device(&z80_ram_device_);
+    bus_.add_device(&ym2612_device_);
     bus_.add_device(&controller_device_);
     bus_.add_device(&z80_controller_device_);
     bus_.add_device(&trademark_register_device_);
@@ -132,6 +134,7 @@ private:
   BusDevice bus_;
   RomDevice rom_device_;
   Z80RamDevice z80_ram_device_;
+  Ym2612Device ym2612_device_;
   ControllerDevice controller_device_;
   Z80ControllerDevice z80_controller_device_;
   TrademarkRegisterDevice trademark_register_device_;

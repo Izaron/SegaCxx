@@ -5,6 +5,7 @@
 #include "lib/common/memory/types.h"
 #include "lib/sega/memory/vdp_device.h"
 #include "lib/sega/video/colors.h"
+#include "spdlog/spdlog.h"
 #include <cstddef>
 #include <cstdint>
 #include <span>
