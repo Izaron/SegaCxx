@@ -127,7 +127,6 @@ int main(int argc, char** argv) {
   // run emulation within a simple "debugger"
   const auto run_until = [&](auto&& condition) -> bool {
     interrupt_handler.reset_time();
-    size_t prek = 0;
     while (!condition()) {
       // check if interrupt should be invoked
       const auto interrupt_check = interrupt_handler.check();
@@ -149,12 +148,6 @@ int main(int argc, char** argv) {
         spdlog::error("execute error kind: {} what: {} pc: {:06x}", magic_enum::enum_name(err->kind()), err->what(),
                       begin_pc);
         return false;
-      }
-
-      ++prek;
-      if (prek >= 0x4000) {
-        prek = 0;
-        std::cerr << ">> CRAM colors:\n" << dump_cram(vdp_device.cram_data()) << std::flush;
       }
     }
     return true;

@@ -38,7 +38,7 @@ Instruction& Instruction::dst(Target target) {
   return *this;
 }
 
-Instruction& Instruction::data(Word data) {
+Instruction& Instruction::data(Long data) {
   data_ = data;
   return *this;
 }

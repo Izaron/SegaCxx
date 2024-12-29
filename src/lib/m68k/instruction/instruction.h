@@ -130,7 +130,7 @@ public:
   Instruction& condition(Condition cond);
   Instruction& src(Target target);
   Instruction& dst(Target target);
-  Instruction& data(Word data);
+  Instruction& data(Long data);
 
   [[nodiscard]] std::optional<Error> execute(Context ctx);
 
@@ -146,7 +146,7 @@ private:
   Condition cond_;
   Target src_;
   Target dst_;
-  Word data_;
+  Long data_;
 
   bool has_src_;
   bool has_dst_;
