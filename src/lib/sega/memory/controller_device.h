@@ -13,7 +13,7 @@ namespace sega {
 class ControllerDevice : public ReadOnlyDevice {
 public:
   static constexpr AddressType kBegin = 0xA10001;
-  static constexpr AddressType kEnd = 0xA1000D;
+  static constexpr AddressType kEnd = 0xA1001F;
 
   enum class Button : uint8_t {
     Up = 0,

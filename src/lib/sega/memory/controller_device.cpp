@@ -1,4 +1,5 @@
 #include "controller_device.h"
+#include "fmt/format.h"
 #include "lib/common/error/error.h"
 #include "lib/common/memory/types.h"
 #include <bit>
@@ -18,12 +19,26 @@ namespace {
 
 // even addresses are no-op, just for 2-bytes padding
 constexpr AddressType kVersion = 0xA10001;
+
 constexpr AddressType kData1 = 0xA10003;
 constexpr AddressType kData2 = 0xA10005;
-constexpr AddressType kData3 = 0xA10007;
+constexpr AddressType kDataExt = 0xA10007;
+
 constexpr AddressType kCtrl1 = 0xA10009;
 constexpr AddressType kCtrl2 = 0xA1000B;
-constexpr AddressType kCtrl3 = 0xA1000D;
+constexpr AddressType kCtrlExt = 0xA1000D;
+
+constexpr AddressType kSerialTransmit1 = 0xA1000F;
+constexpr AddressType kSerialReceive1 = 0xA10011;
+constexpr AddressType kSerialControl1 = 0xA10013;
+
+constexpr AddressType kSerialTransmit2 = 0xA10015;
+constexpr AddressType kSerialReceive2 = 0xA10017;
+constexpr AddressType kSerialControl2 = 0xA10019;
+
+constexpr AddressType kSerialTransmitExt = 0xA1001B;
+constexpr AddressType kSerialReceiveExt = 0xA1001D;
+constexpr AddressType kSerialControlExt = 0xA1001F;
 
 struct Version {
   enum class ExpansionUnitStatus : uint8_t {
@@ -90,7 +105,7 @@ std::optional<Error> ControllerDevice::read(AddressType addr, MutableDataView da
     case kData2:
       value = read_pressed_status(1);
       break;
-    case kData3:
+    case kDataExt:
       value = read_pressed_status(2);
       break;
     // control registers
@@ -100,7 +115,7 @@ std::optional<Error> ControllerDevice::read(AddressType addr, MutableDataView da
     case kCtrl2:
       value = ctrl_value_[1];
       break;
-    case kCtrl3:
+    case kCtrlExt:
       value = ctrl_value_[2];
       break;
     // no-op, write zero
@@ -129,8 +144,13 @@ std::optional<Error> ControllerDevice::write(AddressType addr, DataView data) {
     case kCtrl2:
       ctrl_value_[1] = value;
       break;
-    case kCtrl3:
+    case kCtrlExt:
       ctrl_value_[2] = value;
+      break;
+    // serial registers, no-op
+    case kSerialControl1:
+    case kSerialControl2:
+    case kSerialControlExt:
       break;
     default:
       return Error{Error::InvalidWrite,
