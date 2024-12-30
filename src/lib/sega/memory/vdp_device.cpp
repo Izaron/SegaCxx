@@ -426,7 +426,8 @@ std::optional<Error> VdpDevice::process_vdp_control(Word command) {
       auto& ram = ram_data();
       if (auto_increment_ == 2) {
         // can do fast DMA, just whole block of memory
-        if (auto err = bus_device_.read(source_start, {ram.data() + ram_address_, len})) {
+        const auto safe_len = std::min(len, static_cast<Long>(ram.size() - ram_address_));
+        if (auto err = bus_device_.read(source_start, {ram.data() + ram_address_, safe_len})) {
           return err;
         }
         ram_address_ += len;
