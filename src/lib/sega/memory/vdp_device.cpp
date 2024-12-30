@@ -344,13 +344,8 @@ std::optional<Error> VdpDevice::read(AddressType addr, MutableDataView data) {
 }
 
 std::optional<Error> VdpDevice::write(AddressType addr, DataView data) {
-  if (data.size() % 2 != 0) {
-    return Error{Error::UnalignedMemoryWrite,
-                 fmt::format("Unaligned VDP write addr: {:06x} size: {}", addr, data.size())};
-  }
-
   for (size_t i = 0; i < data.size(); i += 2) {
-    const Word word = (Word{data[i]} << 8) | data[i + 1];
+    const Word word = (i + 1 < data.size()) ? ((Word{data[i]} << 8) | data[i + 1]) : Word{data[i]};
     switch (addr + i) {
     case kVdpData1:
     case kVdpData2:
@@ -425,12 +420,24 @@ std::optional<Error> VdpDevice::process_vdp_control(Word command) {
       // perform DMA immediately
       const auto source_start = dma_source_words_ << 1;
       const auto len = dma_length_words_ << 1;
-      spdlog::debug("perform memory to vram DMA source_start: {:06x} len: {:04x} dest: {:04x}", source_start, len,
-                    ram_address_);
+      spdlog::debug("perform memory to vram DMA source_start: {:06x} len: {:04x} dest: {:04x} auto_increment: {:x}",
+                    source_start, len, ram_address_, auto_increment_);
 
       auto& ram = ram_data();
-      if (auto err = bus_device_.read(source_start, {ram.data() + ram_address_, len})) {
-        return err;
+      if (auto_increment_ == 2) {
+        // can do fast DMA, just whole block of memory
+        if (auto err = bus_device_.read(source_start, {ram.data() + ram_address_, len})) {
+          return err;
+        }
+        ram_address_ += len;
+      } else {
+        // a slower DMA word by word
+        for (size_t i = 0; i < dma_length_words_; ++i) {
+          if (auto err = bus_device_.read(source_start + i * 2, {ram.data() + ram_address_, 2})) {
+            return err;
+          }
+          ram_address_ += auto_increment_;
+        }
       }
       use_dma_ = false;
     }
@@ -465,9 +472,11 @@ std::optional<Error> VdpDevice::process_vdp_data(Word data) {
   }
 
   auto& ram = ram_data();
-  ram[ram_address_++] = data >> 8;
-  ram[ram_address_++] = data & 0xFF;
-  ram_address_ += auto_increment_ - 2;
+  if (ram_address_ + 1 < ram.size()) {
+    ram[ram_address_] = data >> 8;
+    ram[ram_address_ + 1] = data & 0xFF;
+  }
+  ram_address_ += auto_increment_;
   return std::nullopt;
 }
 

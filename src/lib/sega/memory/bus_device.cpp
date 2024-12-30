@@ -1,8 +1,8 @@
 #include "bus_device.h"
+#include "fmt/format.h"
 #include "lib/common/error/error.h"
 #include "lib/common/memory/device.h"
 #include "lib/common/memory/types.h"
-#include "spdlog/spdlog.h"
 #include <fmt/core.h>
 #include <optional>
 
@@ -31,6 +31,9 @@ std::optional<Error> BusDevice::read(AddressType addr, MutableDataView data) {
 }
 
 std::optional<Error> BusDevice::write(AddressType addr, DataView data) {
+  if (data.empty()) [[unlikely]] {
+    return std::nullopt;
+  }
   addr &= kAddressMask;
   if (auto* mapped_device = find_by_addr(addr)) {
     return mapped_device->device->write(addr, data);
