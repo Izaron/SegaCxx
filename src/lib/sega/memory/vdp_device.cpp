@@ -667,7 +667,6 @@ void VdpDevice::process_window_x_division(Byte value) {
   const auto window = std::bit_cast<WindowXDivision>(value);
   window_x_split_ = window.split_coordinate * 16;
   window_display_to_the_right_ = window.display_to_the_right;
-  window_split_mode_ = WindowSplitMode::X;
   spdlog::debug("window X division x_split_coordinate: {} display_to_the_right: {}", window_x_split_,
                 window_display_to_the_right_);
 }
@@ -676,7 +675,6 @@ void VdpDevice::process_window_y_division(Byte value) {
   const auto window = std::bit_cast<WindowYDivision>(value);
   window_y_split_ = window.split_coordinate * 8;
   window_display_below_ = window.display_below;
-  window_split_mode_ = WindowSplitMode::Y;
   spdlog::debug("window Y division y_split_coordinate: {} display_below: {}", window_y_split_, window_display_below_);
 }
 

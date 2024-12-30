@@ -70,20 +70,26 @@ std::span<const uint8_t> Video::update() {
 
   const auto try_draw_plane = [&](PlaneType plane_type, int x, int y, bool priority) -> bool {
     if (plane_type == PlaneType::Window) {
-      if (vdp_device_.window_split_mode() == VdpDevice::WindowSplitMode::X) {
+      const bool allow_x = std::invoke([&] {
         if (vdp_device_.window_display_to_the_right() && x < vdp_device_.window_x_split()) {
           return false;
         }
         if (not vdp_device_.window_display_to_the_right() && x >= vdp_device_.window_x_split()) {
           return false;
         }
-      } else {
+        return true;
+      });
+      const bool allow_y = std::invoke([&] {
         if (vdp_device_.window_display_below() && y < vdp_device_.window_y_split()) {
           return false;
         }
         if (not vdp_device_.window_display_below() && y >= vdp_device_.window_y_split()) {
           return false;
         }
+        return true;
+      });
+      if (!allow_x && !allow_y) {
+        return false;
       }
     } else {
       // apply horizontal scrolling

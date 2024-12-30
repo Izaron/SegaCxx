@@ -74,9 +74,6 @@ public:
   Word window_table_address() const {
     return window_table_address_;
   }
-  WindowSplitMode window_split_mode() const {
-    return window_split_mode_;
-  }
   uint16_t window_x_split() const {
     return window_x_split_;
   }
@@ -185,7 +182,6 @@ private:
   Word plane_b_table_address_{};
 
   Word window_table_address_{};
-  WindowSplitMode window_split_mode_{};
   uint16_t window_x_split_{};
   uint16_t window_y_split_{};
   bool window_display_to_the_right_{};
