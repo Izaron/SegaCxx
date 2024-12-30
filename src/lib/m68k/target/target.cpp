@@ -1,6 +1,7 @@
 #include "target.h"
 #include "lib/common/error/error.h"
 #include "lib/common/memory/types.h"
+#include "lib/common/util/unreachable.h"
 #include "lib/m68k/common/context.h"
 #include "lib/m68k/registers/registers.h"
 
@@ -49,7 +50,7 @@ uint8_t scale_value(int8_t mode) {
   case 3:
     return 8;
   default:
-    std::unreachable();
+    unreachable();
   }
 }
 
@@ -134,7 +135,7 @@ Long Target::effective_address(Context ctx) const {
   case ImmediateKind:
     return address_;
   default:
-    std::unreachable();
+    unreachable();
   }
 }
 
@@ -251,7 +252,7 @@ std::optional<Error> Target::write_sized(Context ctx, Long value, AddressType si
   case 4:
     return write<Long>(ctx, value);
   default:
-    std::unreachable();
+    unreachable();
   }
 }
 

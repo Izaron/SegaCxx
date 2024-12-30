@@ -1,8 +1,8 @@
 #include "colors.h"
 #include "lib/common/memory/types.h"
+#include "lib/common/util/unreachable.h"
 #include <cstddef>
 #include <cstdint>
-#include <utility>
 
 namespace sega {
 
@@ -11,25 +11,25 @@ namespace {
 Colors::Color make_color(Word value) {
   // Sega colors can have one value from [0, 2, 4, 6, 8, A, C, E]
   constexpr auto convert = [](auto value) -> uint8_t {
-    switch (value) {
+    switch (value / 2) {
     case 0x0:
       return 0;
-    case 0x2:
+    case 0x1:
       return 52;
-    case 0x4:
+    case 0x2:
       return 87;
-    case 0x6:
+    case 0x3:
       return 116;
-    case 0x8:
+    case 0x4:
       return 144;
-    case 0xA:
+    case 0x5:
       return 172;
-    case 0xC:
+    case 0x6:
       return 206;
-    case 0xE:
+    case 0x7:
       return 255;
     default:
-      std::unreachable();
+      unreachable();
     }
   };
   const auto blue = convert((value & 0x0F00) >> 8);

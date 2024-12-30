@@ -2,6 +2,7 @@
 #include "lib/common/error/error.h"
 #include "lib/common/memory/device.h"
 #include "lib/common/memory/types.h"
+#include "spdlog/spdlog.h"
 #include <fmt/core.h>
 #include <optional>
 

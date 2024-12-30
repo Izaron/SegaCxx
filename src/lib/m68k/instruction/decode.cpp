@@ -1,3 +1,4 @@
+#include "fmt/format.h"
 #include "instruction.h"
 
 #include <array>
@@ -11,6 +12,7 @@
 
 #include "lib/common/error/error.h"
 #include "lib/common/memory/types.h"
+#include "lib/common/util/unreachable.h"
 #include "lib/m68k/common/context.h"
 #include "lib/m68k/target/target.h"
 
@@ -85,7 +87,7 @@ std::expected<Instruction, Error> Instruction::decode(Context ctx) {
     case 2:
       return LongSize;
     default:
-      std::unreachable();
+      unreachable();
     }
   };
 
@@ -157,7 +159,7 @@ std::expected<Instruction, Error> Instruction::decode(Context ctx) {
       break;
     }
     default:
-      std::unreachable();
+      unreachable();
     }
 
     return target;

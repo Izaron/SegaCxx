@@ -9,7 +9,7 @@ namespace sega {
 RomDevice::RomDevice(DataView rom_data) : rom_data_{rom_data} {}
 
 std::optional<Error> RomDevice::read(AddressType addr, MutableDataView data) {
-  for (size_t i = 0; i < data.size(); ++i) {
+  for (size_t i = 0; i < data.size() && addr + i < rom_data_.size(); ++i) {
     data[i] = rom_data_[addr + i];
   }
   return std::nullopt;

@@ -11,6 +11,7 @@
 
 #include "lib/common/error/error.h"
 #include "lib/common/memory/types.h"
+#include "lib/common/util/unreachable.h"
 #include "lib/m68k/common/context.h"
 #include "lib/m68k/registers/registers.h"
 #include "lib/m68k/target/target.h"
@@ -43,7 +44,7 @@ OpcodeType opcode_type(Instruction::Kind kind) {
   case Instruction::SubKind... Instruction::SubxKind:
     return SubType;
   default:
-    std::unreachable();
+    unreachable();
   }
 }
 
@@ -61,7 +62,7 @@ std::integral auto do_binary_op(OpcodeType type, std::integral auto lhs, std::in
   case CmpType:
     return rhs - lhs;
   default:
-    std::unreachable();
+    unreachable();
   }
 }
 
@@ -78,7 +79,7 @@ bool is_carry(LongLong value, Instruction::Size size) {
   case Instruction::LongSize:
     return value & (value ^ 0xFFFFFFFF);
   default:
-    std::unreachable();
+    unreachable();
   }
 }
 
@@ -91,7 +92,7 @@ bool is_zero(LongLong value, Instruction::Size size) {
   case Instruction::LongSize:
     return (value & 0xFFFFFFFF) == 0;
   default:
-    std::unreachable();
+    unreachable();
   }
 }
 
@@ -132,7 +133,7 @@ bool calculate_condition(const Registers& regs, Instruction::Condition cond) {
     return regs.sr.zero or (regs.sr.negative and (not regs.sr.overflow)) or
            ((not regs.sr.negative) and regs.sr.overflow);
   default:
-    std::unreachable();
+    unreachable();
   }
 }
 
@@ -739,7 +740,7 @@ std::optional<Error> Instruction::execute(Context ctx) {
         }
         SAFE_CALL(dst_.write(ctx, result));
       } else {
-        std::unreachable();
+        unreachable();
       }
     } else {
       auto addr = dst_.effective_address(ctx);
@@ -776,7 +777,7 @@ std::optional<Error> Instruction::execute(Context ctx) {
           SAFE_CALL(ctx.device.write<Word>(addr + 6, byte3 << 8));
         }
       } else {
-        std::unreachable();
+        unreachable();
       }
     }
     break;
