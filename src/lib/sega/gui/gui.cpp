@@ -218,7 +218,8 @@ bool Gui::poll_events() {
 }
 
 void Gui::update_controller() {
-  static constexpr std::array<std::pair<ImGuiKey, ControllerDevice::Button>, 8> kMap = {
+  static constexpr std::array<std::pair<ImGuiKey, ControllerDevice::Button>, 16> kMap = {
+      // keyboard keys
       std::make_pair(ImGuiKey_Enter, ControllerDevice::Button::Start),
 
       std::make_pair(ImGuiKey_LeftArrow, ControllerDevice::Button::Left),
@@ -229,6 +230,18 @@ void Gui::update_controller() {
       std::make_pair(ImGuiKey_A, ControllerDevice::Button::A),
       std::make_pair(ImGuiKey_S, ControllerDevice::Button::B),
       std::make_pair(ImGuiKey_D, ControllerDevice::Button::C),
+
+      // Retroflag joystick buttons
+      std::make_pair(ImGuiKey_GamepadStart, ControllerDevice::Button::Start),
+
+      std::make_pair(ImGuiKey_GamepadDpadLeft, ControllerDevice::Button::Left),
+      std::make_pair(ImGuiKey_GamepadDpadRight, ControllerDevice::Button::Right),
+      std::make_pair(ImGuiKey_GamepadDpadUp, ControllerDevice::Button::Up),
+      std::make_pair(ImGuiKey_GamepadDpadDown, ControllerDevice::Button::Down),
+
+      std::make_pair(ImGuiKey_GamepadFaceDown, ControllerDevice::Button::A),
+      std::make_pair(ImGuiKey_GamepadFaceRight, ControllerDevice::Button::B),
+      std::make_pair(ImGuiKey_GamepadR2, ControllerDevice::Button::C),
   };
 
   auto& controller = executor_.controller_device();
@@ -242,7 +255,7 @@ void Gui::update_controller() {
 }
 
 void Gui::add_main_window() {
-  ImGui::Begin("Main", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+  ImGui::Begin("Main", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav);
   ImGui::Text("Blast Processing!");
   ImGui::SeparatorText("Windows");
   ImGui::Checkbox("Game Window", &show_game_window_);
@@ -295,7 +308,7 @@ void Gui::add_main_window() {
 }
 
 void Gui::add_game_window() {
-  ImGui::Begin("Game", &show_game_window_, ImGuiWindowFlags_AlwaysAutoResize);
+  ImGui::Begin("Game", &show_game_window_, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav);
 
   ImGui::Text("Window Size =");
   ImGui::SameLine();
@@ -314,7 +327,7 @@ void Gui::add_game_window() {
 }
 
 void Gui::add_execution_window() {
-  ImGui::Begin("Execution", &show_execution_window_, ImGuiWindowFlags_AlwaysAutoResize);
+  ImGui::Begin("Execution", &show_execution_window_, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav);
   add_execution_window_statistics();
   add_execution_window_instruction_info();
   add_execution_window_commands();
@@ -444,7 +457,7 @@ void Gui::add_execution_window_registers() {
 }
 
 void Gui::add_colors_window() {
-  ImGui::Begin("Colors", &show_colors_window_, ImGuiWindowFlags_AlwaysAutoResize);
+  ImGui::Begin("Colors", &show_colors_window_, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav);
 
   for (size_t palette_idx = 0; palette_idx < 4; ++palette_idx) {
     for (size_t color_idx = 0; color_idx < 16; ++color_idx) {
@@ -462,7 +475,7 @@ void Gui::add_colors_window() {
 }
 
 void Gui::add_tilemap_window() {
-  ImGui::Begin("Tilemap", &show_tilemap_window_, ImGuiWindowFlags_AlwaysAutoResize);
+  ImGui::Begin("Tilemap", &show_tilemap_window_, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav);
 
   ImGui::Text("Tilemap Size =");
   ImGui::SameLine();
@@ -499,7 +512,8 @@ void Gui::add_plane_window(PlaneType plane_type) {
       "Scale##Window",
   };
 
-  ImGui::Begin(kNames[plane_idx].data(), &show_plane_window_[plane_idx], ImGuiWindowFlags_AlwaysAutoResize);
+  ImGui::Begin(kNames[plane_idx].data(), &show_plane_window_[plane_idx],
+               ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav);
   ImGui::Text("Tilemap Size =");
   ImGui::SameLine();
   ImGui::TextColored(kSizeColor, "%dx%d", planes_[plane_idx].width(), planes_[plane_idx].height());
@@ -516,7 +530,7 @@ void Gui::add_plane_window(PlaneType plane_type) {
 }
 
 void Gui::add_sprite_table_window() {
-  ImGui::Begin("Sprite Table", &show_sprite_table_window_);
+  ImGui::Begin("Sprite Table", &show_sprite_table_window_, ImGuiWindowFlags_NoNav);
 
   ImGui::Checkbox("Auto Update##Sprite Table", &sprite_table_auto_update_);
 
