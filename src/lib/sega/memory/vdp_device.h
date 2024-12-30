@@ -17,7 +17,7 @@ public:
 
   enum class HorizontalScrollMode : uint8_t {
     FullScroll = 0b00,
-    ScrollEightLinesThenRepeat = 0b01,
+    Invalid = 0b01,
     ScrollEveryTile = 0b10,
     ScrollEveryLine = 0b11,
   };
@@ -47,11 +47,11 @@ public:
     return height_;
   }
 
-  uint8_t tilemap_width() const {
-    return tilemap_width_;
+  uint8_t plane_width() const {
+    return plane_width_;
   }
-  uint8_t tilemap_height() const {
-    return tilemap_height_;
+  uint8_t plane_height() const {
+    return plane_height_;
   }
 
   HorizontalScrollMode horizontal_scroll_mode() const {
@@ -136,7 +136,7 @@ private:
   void process_mode4_set(Byte value);
   void process_hscroll_table_address(Byte value);
   void process_auto_increment(Byte value);
-  void process_tilemap_size(Byte value);
+  void process_plane_size(Byte value);
   void process_window_x_division(Byte value);
   void process_window_y_division(Byte value);
   void process_dma_length_low(Byte value);
@@ -174,8 +174,8 @@ private:
   uint8_t width_{};
   uint8_t height_{};
 
-  uint8_t tilemap_width_{};
-  uint8_t tilemap_height_{};
+  uint8_t plane_width_{};
+  uint8_t plane_height_{};
 
   HorizontalScrollMode horizontal_scroll_mode_{};
   VerticalScrollMode vertical_scroll_mode_{};

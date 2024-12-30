@@ -15,8 +15,8 @@ Plane::Plane(const VdpDevice& vdp_device, PlaneType type) : vdp_device_{vdp_devi
 }
 
 ImTextureID Plane::draw(const Colors& colors) {
-  uint8_t cur_width = vdp_device_.tilemap_width();
-  uint8_t cur_height = vdp_device_.tilemap_height();
+  uint8_t cur_width = vdp_device_.plane_width();
+  uint8_t cur_height = vdp_device_.plane_height();
   if (width_ != cur_width || height_ != cur_height || !texture_) {
     width_ = cur_width;
     height_ = cur_height;

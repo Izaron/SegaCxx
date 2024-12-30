@@ -93,7 +93,7 @@ std::span<const uint8_t> Video::update() {
       case VdpDevice::HorizontalScrollMode::FullScroll:
         x -= hscroll_ram_ptr[plane_type == PlaneType::PlaneA ? 0 : 1].get();
         break;
-      case VdpDevice::HorizontalScrollMode::ScrollEightLinesThenRepeat:
+      case VdpDevice::HorizontalScrollMode::Invalid:
         spdlog::error("unsupported hscroll mode");
         std::abort(); // unsupported now, don't understand this mode
         break;
@@ -128,11 +128,11 @@ std::span<const uint8_t> Video::update() {
       }
     });
 
-    size_t tile_x = (x / kTileDimension) % vdp_device_.tilemap_width();
-    size_t tile_y = (y / kTileDimension) % vdp_device_.tilemap_height();
+    size_t tile_x = (x / kTileDimension) % vdp_device_.plane_width();
+    size_t tile_y = (y / kTileDimension) % vdp_device_.plane_height();
 
     const auto* nametable_vram_ptr = vdp_device_.vram_data().data() + table_address +
-                                     sizeof(NametableEntry) * (tile_y * vdp_device_.tilemap_width() + tile_x);
+                                     sizeof(NametableEntry) * (tile_y * vdp_device_.plane_width() + tile_x);
     const auto& nametable_entry = *reinterpret_cast<const NametableEntry*>(nametable_vram_ptr);
     if (nametable_entry.priority != priority) {
       return false;

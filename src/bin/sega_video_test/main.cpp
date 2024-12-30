@@ -4,12 +4,16 @@
 #include "lib/sega/state_dump/state_dump.h"
 #include "lib/sega/video/constants.h"
 #include "lib/sega/video/video.h"
+#include "spdlog/common.h"
+#include "spdlog/spdlog.h"
 #include <cassert>
 #include <string_view>
 
 namespace sega {
 
 int main(int argc, char** argv) {
+  spdlog::set_level(spdlog::level::debug);
+
   assert(argc == 3);
   const auto dump_path = std::string_view{argv[1]};
   const auto image_path = std::string_view{argv[2]};

@@ -14,8 +14,8 @@ Tilemap::Tilemap(const VdpDevice& vdp_device) : vdp_device_{vdp_device} {
 }
 
 ImTextureID Tilemap::draw(const Colors::Palette& palette) {
-  uint8_t cur_width = vdp_device_.tilemap_width();
-  uint8_t cur_height = vdp_device_.tilemap_height();
+  uint8_t cur_width = vdp_device_.plane_width();
+  uint8_t cur_height = vdp_device_.plane_height();
   if (width_ != cur_width || height_ != cur_height || !texture_) {
     width_ = cur_width;
     height_ = cur_height;

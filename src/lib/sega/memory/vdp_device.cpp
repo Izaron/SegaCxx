@@ -133,7 +133,7 @@ enum class VdpRegister : Byte {
   HscrollTableAddress = 0x8D,
   Unused8E = 0x8E,
   AutoIncrement = 0x8F,
-  TilemapSize = 0x90,
+  PlaneSize = 0x90,
   WindowXDivision = 0x91,
   WindowYDivision = 0x92,
   DmaLengthLow = 0x93,
@@ -147,9 +147,10 @@ enum class VdpRegister : Byte {
 };
 
 struct Mode1 {
-  bool : 1;
+  bool disable_display : 1;
   bool freeze_hv_counter : 1;
-  bool : 2;
+  bool dont_mask_high_bit_of_color_entries : 1;
+  bool : 1;
   bool enable_hblank_interrupt : 1;
   bool blank_leftmost_column : 1;
   bool : 2;
@@ -162,12 +163,13 @@ struct Mode2 {
     V30 = 1,
   };
 
-  bool : 3;
+  bool : 2;
+  bool mega_drive_display : 1;
   VerticalResolution vertical_resolution : 1;
   bool allow_dma : 1;
   bool enable_vblank_interrupt : 1;
   bool enable_rendering : 1;
-  bool : 1;
+  bool use_128kb_vram : 1;
 };
 static_assert(sizeof(Mode2) == 1);
 
@@ -185,42 +187,45 @@ struct Mode4 {
     H40 = 1,
   };
 
-  enum class InterlacedMode : uint8_t {
-    NoInterlacing = 0b00,
-    Mode1 = 0b01,
-    Mode2 = 0b11,
+  enum class InterlaceMode : uint8_t {
+    NoInterlace = 0b00,
+    InterlaceNormal = 0b01,
+    NoInterlace2 = 0b10,
+    InterlaceDouble = 0b11,
   };
 
   HorizontalResolution horizontal_resolution : 1;
-  InterlacedMode interlaced_mode : 2;
+  InterlaceMode interlace_mode : 2;
   bool enable_shadow_highlight : 1;
-  bool : 4;
+  bool enable_external_pixel_bus : 1;
+  bool use_pixel_clock_signal : 1;
+  bool freeze_hsync : 1;
+  bool : 1;
 };
 static_assert(sizeof(Mode4) == 1);
 
 struct PlaneATableAddress {
   bool : 3;
-  uint8_t address : 3;
-  bool : 2;
+  uint8_t address : 4;
+  bool : 1;
 };
 static_assert(sizeof(PlaneATableAddress) == 1);
 
 struct WindowTableAddress {
   bool : 1;
-  uint8_t address : 5;
-  bool : 2;
+  uint8_t address : 6;
+  bool : 1;
 };
 static_assert(sizeof(WindowTableAddress) == 1);
 
 struct PlaneBTableAddress {
-  uint8_t address : 3;
-  bool : 5;
+  uint8_t address : 4;
+  bool : 4;
 };
 static_assert(sizeof(PlaneBTableAddress) == 1);
 
 struct SpriteTableAddress {
-  uint8_t address : 7;
-  bool : 1;
+  uint8_t address;
 };
 static_assert(sizeof(SpriteTableAddress) == 1);
 
@@ -232,24 +237,24 @@ struct BackgroundColor {
 static_assert(sizeof(BackgroundColor) == 1);
 
 struct HscrollTableAddress {
-  uint8_t address : 6;
-  bool : 2;
+  uint8_t address : 7;
+  bool : 1;
 };
 static_assert(sizeof(HscrollTableAddress) == 1);
 
-struct TilemapSize {
+struct PlaneSize {
   enum class Size : uint8_t {
     S32 = 0b00,
     S64 = 0b01,
     S128 = 0b11,
   };
 
-  Size horizontal_size : 2;
+  Size width : 2;
   bool : 2;
-  Size vertical_size : 2;
+  Size height : 2;
   bool : 2;
 };
-static_assert(sizeof(TilemapSize) == 1);
+static_assert(sizeof(PlaneSize) == 1);
 
 struct WindowXDivision {
   uint8_t split_coordinate : 5;
@@ -506,8 +511,8 @@ std::optional<Error> VdpDevice::process_vdp_register(Word data) {
   case VdpRegister::AutoIncrement:
     process_auto_increment(value);
     break;
-  case VdpRegister::TilemapSize:
-    process_tilemap_size(value);
+  case VdpRegister::PlaneSize:
+    process_plane_size(value);
     break;
   case VdpRegister::WindowXDivision:
     process_window_x_division(value);
@@ -544,8 +549,10 @@ std::optional<Error> VdpDevice::process_vdp_register(Word data) {
 
 void VdpDevice::process_mode1_set(Byte value) {
   const auto mode1 = std::bit_cast<Mode1>(value);
-  spdlog::debug("mode1 set freeze_hv_counter: {} enable_hblank_interrupt: {} blank_leftmost_column: {}",
-                mode1.freeze_hv_counter, mode1.enable_hblank_interrupt, mode1.blank_leftmost_column);
+  spdlog::debug("mode1 set disable_display: {} freeze_hv_counter: {} dont_mask_high_bit_of_color_entries: {} "
+                "enable_hblank_interrupt: {} blank_leftmost_column: {}",
+                mode1.disable_display, mode1.freeze_hv_counter, mode1.dont_mask_high_bit_of_color_entries,
+                mode1.enable_hblank_interrupt, mode1.blank_leftmost_column);
 }
 
 void VdpDevice::process_mode2_set(Byte value) {
@@ -559,9 +566,10 @@ void VdpDevice::process_mode2_set(Byte value) {
       return 30;
     }
   });
-  spdlog::debug("mode2 set vertical_resolution: {} allow_dma: {} enable_vblank_interrupt: {} enable_rendering: {}",
-                magic_enum::enum_name(mode2.vertical_resolution), mode2.allow_dma, mode2.enable_vblank_interrupt,
-                mode2.enable_rendering);
+  spdlog::debug("mode2 set mega_drive_display: {} vertical_resolution: {} allow_dma: {} enable_vblank_interrupt: {} "
+                "enable_rendering: {} use_128kb_vram: {}",
+                mode2.mega_drive_display, magic_enum::enum_name(mode2.vertical_resolution), mode2.allow_dma,
+                mode2.enable_vblank_interrupt, mode2.enable_rendering, mode2.use_128kb_vram);
 }
 
 void VdpDevice::process_plane_a_table_address(Byte value) {
@@ -618,9 +626,11 @@ void VdpDevice::process_mode4_set(Byte value) {
       return 40;
     }
   });
-  spdlog::debug("mode4 set horizontal_resolution: {} interlaced_mode: {} enable_shadow_highlight: {}",
-                magic_enum::enum_name(mode4.horizontal_resolution), magic_enum::enum_name(mode4.interlaced_mode),
-                mode4.enable_shadow_highlight);
+  spdlog::debug("mode4 set horizontal_resolution: {} interlace_mode: {} enable_shadow_highlight: {} "
+                "enable_external_pixel_bus: {} use_pixel_clock_signal: {} freeze_hsync: {}",
+                magic_enum::enum_name(mode4.horizontal_resolution), magic_enum::enum_name(mode4.interlace_mode),
+                mode4.enable_shadow_highlight, mode4.enable_external_pixel_bus, mode4.use_pixel_clock_signal,
+                mode4.freeze_hsync);
 }
 
 void VdpDevice::process_hscroll_table_address(Byte value) {
@@ -635,22 +645,22 @@ void VdpDevice::process_auto_increment(Byte value) {
   spdlog::debug("auto increment amount: {}", value);
 }
 
-void VdpDevice::process_tilemap_size(Byte value) {
-  const auto tilemap = std::bit_cast<TilemapSize>(value);
-  const auto to_value = [](TilemapSize::Size size) {
+void VdpDevice::process_plane_size(Byte value) {
+  const auto plane_size = std::bit_cast<PlaneSize>(value);
+  const auto to_value = [](PlaneSize::Size size) {
     switch (size) {
-    case TilemapSize::Size::S32:
+    case PlaneSize::Size::S32:
       return 32;
-    case TilemapSize::Size::S64:
+    case PlaneSize::Size::S64:
       return 64;
-    case TilemapSize::Size::S128:
+    case PlaneSize::Size::S128:
       return 128;
     }
   };
-  tilemap_width_ = to_value(tilemap.horizontal_size);
-  tilemap_height_ = to_value(tilemap.vertical_size);
-  spdlog::debug("tilemap size horizontal: {} vertical: {}", magic_enum::enum_name(tilemap.horizontal_size),
-                magic_enum::enum_name(tilemap.vertical_size));
+  plane_width_ = to_value(plane_size.width);
+  plane_height_ = to_value(plane_size.height);
+  spdlog::debug("plane size width: {} height: {}", magic_enum::enum_name(plane_size.width),
+                magic_enum::enum_name(plane_size.height));
 }
 
 void VdpDevice::process_window_x_division(Byte value) {
