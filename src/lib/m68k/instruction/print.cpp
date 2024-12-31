@@ -4,6 +4,7 @@
 #include <string>
 #include <string_view>
 
+#include "lib/common/util/unreachable.h"
 #include "lib/m68k/target/target.h"
 
 namespace m68k {
@@ -17,6 +18,8 @@ std::string Instruction::print() const {
       return 'w';
     case LongSize:
       return 'l';
+    default:
+      unreachable();
     }
   };
 

@@ -134,6 +134,10 @@ std::span<const uint8_t> Video::update() {
       }
     });
 
+    if (vdp_device_.plane_width() == 0 || vdp_device_.plane_height() == 0) [[unlikely]] {
+      return false;
+    }
+
     size_t tile_x = (x / kTileDimension) % vdp_device_.plane_width();
     size_t tile_y = (y / kTileDimension) % vdp_device_.plane_height();
 

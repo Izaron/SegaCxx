@@ -7,6 +7,7 @@
 
 #include "fmt/format.h"
 #include "lib/common/error/error.h"
+#include "spdlog/spdlog.h"
 #include "types.h"
 
 class Device {
@@ -38,8 +39,9 @@ public:
 class ReadOnlyDevice : public Device {
 private:
   std::optional<Error> write(AddressType addr, DataView data) override {
-    return Error{Error::ProtectedWrite,
-                       fmt::format("protected write address: {:06x} size: {:x}", addr, data.size())};
+    // some games do it, just print an error
+    spdlog::error("protected write address: {:06x} size: {:x}", addr, data.size());
+    return std::nullopt;
   }
 };
 
