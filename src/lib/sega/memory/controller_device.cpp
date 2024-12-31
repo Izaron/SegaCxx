@@ -137,6 +137,9 @@ std::optional<Error> ControllerDevice::write(AddressType addr, DataView data) {
     case kData2:
       current_step_by_controller_[1] = value == 0x40 ? StepNumber::Step1 : StepNumber::Step2;
       break;
+    case kDataExt:
+      current_step_by_controller_[2] = value == 0x40 ? StepNumber::Step1 : StepNumber::Step2;
+      break;
     // control registers
     case kCtrl1:
       ctrl_value_[0] = value;
