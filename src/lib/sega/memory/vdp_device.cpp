@@ -34,6 +34,11 @@ constexpr AddressType kVdpData2 = 0xC00002;
 constexpr AddressType kVdpCtrl1 = 0xC00004;
 constexpr AddressType kVdpCtrl2 = 0xC00006;
 
+constexpr AddressType kHvCounter1 = 0xC00008;
+constexpr AddressType kHvCounter2 = 0xC0000A;
+constexpr AddressType kHvCounter3 = 0xC0000C;
+constexpr AddressType kHvCounter4 = 0xC0000E;
+
 constexpr AddressType kVramSize = 65536;
 constexpr AddressType kVsramSize = 80;
 constexpr AddressType kCramSize = 128;
@@ -323,10 +328,8 @@ std::optional<Error> VdpDevice::read(AddressType addr, MutableDataView data) {
     case kVdpData2: {
       // TODO: maybe check for bounds?
       const auto& ram = ram_data();
-      if (data.size() == 1) [[unlikely]] {
-        data[i] = ram[ram_address_++];
-      } else {
-        data[i] = ram[ram_address_++];
+      data[i] = ram[ram_address_++];
+      if (data.size() > 1) [[likely]] {
         data[i + 1] = ram[ram_address_++];
       }
       break;
@@ -339,6 +342,14 @@ std::optional<Error> VdpDevice::read(AddressType addr, MutableDataView data) {
       } else {
         data[i] = status_register >> 8;
         data[i + 1] = status_register & 0xFF;
+      }
+      break;
+    }
+    case (kHvCounter1 - 1)... kHvCounter4: {
+      // just fill with zeros now
+      data[i] = 0;
+      if (data.size() > 1) {
+        data[i + 1] = 0;
       }
       break;
     }

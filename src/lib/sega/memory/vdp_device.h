@@ -13,7 +13,7 @@ namespace sega {
 class VdpDevice : public Device {
 public:
   static constexpr AddressType kBegin = 0xC00000;
-  static constexpr AddressType kEnd = 0xC00005;
+  static constexpr AddressType kEnd = 0xC0000E;
 
   enum class HorizontalScrollMode : uint8_t {
     FullScroll = 0b00,
