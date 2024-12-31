@@ -73,7 +73,7 @@ private:
   bool show_execution_window_{true};
   std::array<char, 7> until_address_{};
   std::function<bool()> condition_;
-  uint32_t executed_count_{};
+  uint64_t executed_count_{};
 
   // Colors window
   bool show_colors_window_{false};

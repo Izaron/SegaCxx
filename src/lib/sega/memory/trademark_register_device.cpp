@@ -1,4 +1,5 @@
 #include "trademark_register_device.h"
+#include "fmt/format.h"
 #include "lib/common/error/error.h"
 #include "lib/common/memory/types.h"
 #include <fmt/core.h>
@@ -21,7 +22,7 @@ std::optional<Error> TrademarkRegisterDevice::write(AddressType addr, DataView d
   if (value != kValue) {
     return Error{Error::InvalidWrite, fmt::format("Invalid write value: {:04x}", value)};
   }
-  spdlog::info("trademark activated");
+  spdlog::debug("trademark activated");
   return std::nullopt;
 }
 

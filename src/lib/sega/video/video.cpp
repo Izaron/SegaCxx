@@ -217,12 +217,12 @@ void Video::check_size() {
   if (const auto vdp_width = vdp_device_.tile_width(); vdp_width != width_) {
     width_ = vdp_width;
     size_changed = true;
-    spdlog::info("set game width: {}", width_);
+    spdlog::debug("set game width: {}", width_);
   }
   if (const auto vdp_height = vdp_device_.tile_height(); vdp_height != height_) {
     height_ = vdp_height;
     size_changed = true;
-    spdlog::info("set game height: {}", height_);
+    spdlog::debug("set game height: {}", height_);
   }
   if (size_changed) {
     // RGBA encoding

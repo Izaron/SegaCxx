@@ -313,9 +313,8 @@ void VdpDevice::apply_state(Passkey<StateDump>, DataView state) {
 }
 
 std::optional<Error> VdpDevice::read(AddressType addr, MutableDataView data) {
-  if (data.size() % 2 != 0) {
-    return Error{Error::UnalignedMemoryRead,
-                 fmt::format("Unaligned VDP read address: {:06x} size: {:x}", addr, data.size())};
+  if (data.size() == 1) {
+    --addr;
   }
 
   for (size_t i = 0; i < data.size(); i += 2) {
@@ -331,8 +330,12 @@ std::optional<Error> VdpDevice::read(AddressType addr, MutableDataView data) {
     case kVdpCtrl1:
     case kVdpCtrl2: {
       const Word status_register = read_status_register();
-      data[i] = status_register >> 8;
-      data[i + 1] = status_register & 0xFF;
+      if (data.size() == 1) [[unlikely]] {
+        data[i] = status_register & 0xFF;
+      } else {
+        data[i] = status_register >> 8;
+        data[i + 1] = status_register & 0xFF;
+      }
       break;
     }
     default:

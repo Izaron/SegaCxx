@@ -168,7 +168,7 @@ Byte ControllerDevice::read_version() {
       .model = Version::Model::Overseas,
   };
   const auto as_byte = std::bit_cast<Byte>(kEmulatorVersion);
-  spdlog::info("read version: {:02x}", as_byte);
+  spdlog::debug("read version: {:02x}", as_byte);
   return as_byte;
 }
 
