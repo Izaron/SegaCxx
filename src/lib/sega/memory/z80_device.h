@@ -10,7 +10,7 @@ namespace sega {
 class Z80RamDevice : public Device {
 public:
   static constexpr AddressType kBegin = 0xA00000;
-  static constexpr AddressType kEnd = 0xA01FFF;
+  static constexpr AddressType kEnd = 0xA0FFFF;
 
   Z80RamDevice();
 

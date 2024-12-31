@@ -1,4 +1,5 @@
 #include "z80_device.h"
+#include "fmt/format.h"
 #include "lib/common/error/error.h"
 #include "lib/common/memory/types.h"
 #include <cstddef>
@@ -52,14 +53,15 @@ std::optional<Error> Z80ControllerDevice::read(AddressType addr, MutableDataView
 }
 
 std::optional<Error> Z80ControllerDevice::write(AddressType addr, DataView data) {
-  if (data.size() == 2 && addr == kZ80BusRequest) {
-    bus_value_ = data.as<Word>();
+  if (data.size() <= 2 && addr == kZ80BusRequest) {
+    bus_value_ = (data.size() == 1) ? (data.as<Byte>() << 8) : data.as<Word>();
     spdlog::debug("Z80 bus request write: {:04x}", bus_value_);
     bus_value_ = bus_value_ == 0x100 ? 0x000 : 0x100; // not a bug
     return std::nullopt;
   }
-  if (data.size() == 2 && addr == kZ80Reset) {
-    spdlog::debug("Z80 reset write: {:04x}", data.as<Word>());
+  if (data.size() <= 2 && addr == kZ80Reset) {
+    const auto value = (data.size() == 1) ? (data.as<Byte>() << 8) : data.as<Word>();
+    spdlog::debug("Z80 reset write: {:04x}", value);
     return std::nullopt;
   }
   return Error{Error::UnmappedWrite,
