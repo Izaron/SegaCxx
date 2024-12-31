@@ -1,9 +1,9 @@
 #include "plane.h"
-#include "SDL_opengl.h"
 #include "imgui.h"
 #include "lib/sega/memory/vdp_device.h"
 #include "lib/sega/video/colors.h"
 #include "lib/sega/video/constants.h"
+#include <GL/gl.h>
 #include <cstddef>
 #include <cstdint>
 #include <functional>

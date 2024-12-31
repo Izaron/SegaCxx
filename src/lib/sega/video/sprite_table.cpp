@@ -1,11 +1,10 @@
 #include "sprite_table.h"
-#include "SDL_opengl.h"
 #include "constants.h"
 #include "imgui.h"
 #include "lib/common/memory/types.h"
 #include "lib/sega/memory/vdp_device.h"
 #include "lib/sega/video/colors.h"
-#include "spdlog/spdlog.h"
+#include <GL/gl.h>
 #include <cstddef>
 #include <cstdint>
 #include <span>
@@ -131,6 +130,7 @@ std::span<const ImTextureID> SpriteTable::draw_sprites() {
                  canvas.data());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glBindTexture(GL_TEXTURE_2D, 0);
   }
   textures_count_ = sprites_count_;
   return {reinterpret_cast<const ImTextureID*>(textures_.data()), textures_count_};

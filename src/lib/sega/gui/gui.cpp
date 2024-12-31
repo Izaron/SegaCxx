@@ -1,15 +1,9 @@
 #include "gui.h"
-#include "SDL.h"
-#include "SDL_error.h"
-#include "SDL_events.h"
-#include "SDL_hints.h"
-#include "SDL_opengl.h"
-#include "SDL_timer.h"
-#include "SDL_video.h"
+#include "GLFW/glfw3.h"
 #include "fmt/format.h"
 #include "imgui.h"
+#include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-#include "imgui_impl_sdl2.h"
 #include "lib/common/memory/types.h"
 #include "lib/sega/executor/executor.h"
 #include "lib/sega/memory/controller_device.h"
@@ -18,6 +12,7 @@
 #include "lib/sega/video/constants.h"
 #include "lib/sega/video/plane.h"
 #include "magic_enum/magic_enum.hpp"
+#include <GL/gl.h>
 #include <array>
 #include <bit>
 #include <cstddef>
@@ -45,6 +40,10 @@ constexpr auto kBytesColor = ImVec4{1, 1, 0, 1};       // yellow
 constexpr auto kSizeColor = ImVec4{1, 1, 0, 1};        // yellow
 constexpr auto kDescriptionColor = ImVec4{1, 0, 1, 1}; // pink
 
+void glfw_error_callback(int error, const char* description) {
+  spdlog::error("GLFW error code: {} description: {}", error, description);
+}
+
 std::string make_title(const Metadata& metadata) {
   std::stringstream ss;
   const auto& title = metadata.domestic_title;
@@ -68,47 +67,30 @@ Gui::Gui(Executor& executor)
 Gui::~Gui() {
   // cleanup
   ImGui_ImplOpenGL3_Shutdown();
-  ImGui_ImplSDL2_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
 
-  SDL_GL_DeleteContext(gl_context_);
-  SDL_DestroyWindow(window_);
-  SDL_Quit();
+  glfwDestroyWindow(window_);
+  glfwTerminate();
 }
 
 bool Gui::setup() {
-  // setup SDL
-  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) {
-    spdlog::error("SDL_Init() error: {}", SDL_GetError());
+  glfwSetErrorCallback(glfw_error_callback);
+  if (!glfwInit()) {
     return false;
   }
 
   // setup GL 3.0 + GLSL 130
   const char* glsl_version = "#version 130";
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
-  // From 2.0.18: Enable native IME.
-  SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
-
-  // Create window with graphics context
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-
-  SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-  window_ = SDL_CreateWindow(make_title(executor_.metadata()).c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                             1280, 720, window_flags);
+  // setup
+  window_ = glfwCreateWindow(1280, 720, make_title(executor_.metadata()).c_str(), nullptr, nullptr);
   if (window_ == nullptr) {
-    spdlog::error("SDL_CreateWindow() error: {}", SDL_GetError());
     return false;
   }
-
-  gl_context_ = SDL_GL_CreateContext(window_);
-  SDL_GL_MakeCurrent(window_, gl_context_);
-  // SDL_GL_SetSwapInterval(1); // enable vsync
+  glfwMakeContextCurrent(window_);
 
   // setup Dear ImGui context
   IMGUI_CHECKVERSION();
@@ -121,7 +103,7 @@ bool Gui::setup() {
   ImGui::StyleColorsDark();
 
   // setup Platform/Renderer backends
-  ImGui_ImplSDL2_InitForOpenGL(window_, gl_context_);
+  ImGui_ImplGlfw_InitForOpenGL(window_, true);
   ImGui_ImplOpenGL3_Init(glsl_version);
 
   // setup font
@@ -159,7 +141,7 @@ void Gui::execute() {
 void Gui::render() {
   // start the Dear ImGui frame
   ImGui_ImplOpenGL3_NewFrame();
-  ImGui_ImplSDL2_NewFrame();
+  ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
 
   // add windows
@@ -196,23 +178,16 @@ void Gui::render() {
                kClearColor.w);
   glClear(GL_COLOR_BUFFER_BIT);
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-  SDL_GL_SwapWindow(window_);
+  glfwSwapBuffers(window_);
 }
 
 bool Gui::poll_events() {
-  SDL_Event event;
-  while (SDL_PollEvent(&event)) {
-    ImGui_ImplSDL2_ProcessEvent(&event);
-    if (event.type == SDL_QUIT) {
-      return false;
-    }
-    if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE &&
-        event.window.windowID == SDL_GetWindowID(window_)) {
-      return false;
-    }
-    if (SDL_GetWindowFlags(window_) & SDL_WINDOW_MINIMIZED) {
-      SDL_Delay(10);
-    }
+  if (glfwWindowShouldClose(window_)) {
+    return false;
+  }
+  glfwPollEvents();
+  if (glfwGetWindowAttrib(window_, GLFW_ICONIFIED) != 0) {
+    ImGui_ImplGlfw_Sleep(10);
   }
   return true;
 }

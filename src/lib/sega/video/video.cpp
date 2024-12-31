@@ -1,11 +1,11 @@
 #include "video.h"
-#include "SDL_opengl.h"
 #include "imgui.h"
 #include "lib/common/memory/types.h"
 #include "lib/sega/memory/vdp_device.h"
 #include "lib/sega/video/constants.h"
 #include "lib/sega/video/plane.h"
 #include "spdlog/spdlog.h"
+#include <GL/gl.h>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -244,6 +244,7 @@ void Video::check_size() {
                  GL_UNSIGNED_BYTE, canvas_.data());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glBindTexture(GL_TEXTURE_2D, 0);
   }
 }
 

@@ -1,5 +1,5 @@
 #pragma once
-#include "SDL_video.h"
+#include "GLFW/glfw3.h"
 #include "imgui.h"
 #include "lib/sega/executor/executor.h"
 #include "lib/sega/video/plane.h"
@@ -61,8 +61,7 @@ private:
 
 private:
   Executor& executor_;
-  SDL_Window* window_{};
-  SDL_GLContext gl_context_{};
+  GLFWwindow* window_{};
 
   // Game window
   bool show_game_window_{true};

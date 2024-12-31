@@ -29,8 +29,6 @@ set(CMAKE_CXX_FLAGS_RELEASE
 )
 
 # add local packages
-find_package(SDL2 REQUIRED)
-include_directories(${SDL2_INCLUDE_DIRS})
 find_package(OpenGL REQUIRED)
 
 # add external packages
@@ -56,6 +54,15 @@ FetchContent_MakeAvailable(spdlog_external)
 include_directories(${spdlog_external_SOURCE_DIR}/include)
 
 # external package: imgui
+FetchContent_Declare(
+  glfw_external
+  GIT_REPOSITORY https://github.com/glfw/glfw.git
+  GIT_TAG        3.4
+)
+FetchContent_MakeAvailable(glfw_external)
+include_directories(${glfw_external_SOURCE_DIR}/include)
+
+# external package: imgui
 FetchContent_Declare(imgui_external
     URL https://github.com/ocornut/imgui/archive/refs/tags/v1.91.4.tar.gz
     EXCLUDE_FROM_ALL
@@ -67,12 +74,12 @@ add_library(imgui
 	${imgui_external_SOURCE_DIR}/imgui_draw.cpp
 	${imgui_external_SOURCE_DIR}/imgui_tables.cpp
 	${imgui_external_SOURCE_DIR}/imgui_widgets.cpp
-	${imgui_external_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp
+	${imgui_external_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
 	${imgui_external_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
 )
 include_directories(${imgui_external_SOURCE_DIR})
 include_directories(${imgui_external_SOURCE_DIR}/backends)
-target_include_directories(imgui PUBLIC ${imgui_external_SOURCE_DIR})
+target_include_directories(imgui PUBLIC ${imgui_external_SOURCE_DIR} ${glfw_external_SOURCE_DIR})
 
 # external package: nlohmann
 FetchContent_Declare(nlohmann_external
