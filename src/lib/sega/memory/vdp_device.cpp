@@ -313,7 +313,7 @@ void VdpDevice::apply_state(Passkey<StateDump>, DataView state) {
 }
 
 std::optional<Error> VdpDevice::read(AddressType addr, MutableDataView data) {
-  if (data.size() == 1) {
+  if (data.size() == 1) [[unlikely]] {
     --addr;
   }
 
@@ -323,8 +323,12 @@ std::optional<Error> VdpDevice::read(AddressType addr, MutableDataView data) {
     case kVdpData2: {
       // TODO: maybe check for bounds?
       const auto& ram = ram_data();
-      data[i] = ram[ram_address_++];
-      data[i + 1] = ram[ram_address_++];
+      if (data.size() == 1) [[unlikely]] {
+        data[i] = ram[ram_address_++];
+      } else {
+        data[i] = ram[ram_address_++];
+        data[i + 1] = ram[ram_address_++];
+      }
       break;
     }
     case kVdpCtrl1:
@@ -390,8 +394,7 @@ std::optional<Error> VdpDevice::process_vdp_control(Word command) {
     const auto cd4 = (value & (1 << 6)) >> 6;
     const auto cd5 = (value & (1 << 7)) >> 7;
 
-    use_dma_ = cd5;
-    // TODO: check for enabled DMA from Mode2
+    use_dma_ = cd5 && allow_dma_;
 
     const auto mask = (cd3 << 3) | (cd2 << 2) | (cd1 << 1) | cd0;
     switch (mask) {
@@ -423,8 +426,9 @@ std::optional<Error> VdpDevice::process_vdp_control(Word command) {
       // perform DMA immediately
       const auto source_start = dma_source_words_ << 1;
       const auto len = dma_length_words_ << 1;
-      spdlog::debug("perform memory to vram DMA source_start: {:06x} len: {:04x} dest: {:04x} auto_increment: {:x}",
-                    source_start, len, ram_address_, auto_increment_);
+      spdlog::debug(
+          "perform memory to vram DMA kind: {} source_start: {:06x} len: {:04x} dest: {:04x} auto_increment: {:x}",
+          magic_enum::enum_name(ram_kind_), source_start, len, ram_address_, auto_increment_);
 
       auto& ram = ram_data();
       if (auto_increment_ == 2) {
@@ -570,6 +574,7 @@ void VdpDevice::process_mode1_set(Byte value) {
 
 void VdpDevice::process_mode2_set(Byte value) {
   const auto mode2 = std::bit_cast<Mode2>(value);
+  allow_dma_ = mode2.allow_dma;
   vblank_interrupt_enabled_ = mode2.enable_vblank_interrupt;
   height_ = std::invoke([&] {
     switch (mode2.vertical_resolution) {

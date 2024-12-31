@@ -163,6 +163,7 @@ private:
   // data from registers
   bool vblank_interrupt_enabled_{};
 
+  bool allow_dma_{};
   Long dma_length_words_{}; // warning - size in words, not in bytes
   Long dma_source_words_{}; // warning - size in words, not in bytes
   DmaType dma_type_{DmaType::MemoryToVram};
