@@ -1,10 +1,10 @@
 #pragma once
-#include <GL/gl.h>
-#include <GLFW/glfw3.h>
 #include "imgui.h"
 #include "lib/sega/memory/vdp_device.h"
 #include "lib/sega/video/colors.h"
 #include "lib/sega/video/sprite_table.h"
+#include <GL/gl.h>
+#include <GLFW/glfw3.h>
 #include <cstdint>
 #include <span>
 #include <vector>

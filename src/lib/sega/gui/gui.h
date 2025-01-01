@@ -2,10 +2,12 @@
 #include "GLFW/glfw3.h"
 #include "imgui.h"
 #include "lib/sega/executor/executor.h"
+#include "lib/sega/shader/shader.h"
 #include "lib/sega/video/plane.h"
 #include "lib/sega/video/sprite_table.h"
 #include "lib/sega/video/tilemap.h"
 #include "lib/sega/video/video.h"
+#include <GL/gl.h>
 #include <array>
 #include <cstdint>
 #include <functional>
@@ -62,6 +64,11 @@ private:
 private:
   Executor& executor_;
   GLFWwindow* window_{};
+
+  // Shader variables
+  Shader shader_;
+  GLuint shader_program_;
+  ShaderType current_shader_type_{ShaderType::Crt};
 
   // Game window
   bool show_game_window_{true};

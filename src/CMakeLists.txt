@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 
 set(CMAKE_CXX_COMPILER "clang++")
-project(segacxx VERSION 0.1 LANGUAGES CXX)
+project(segacxx VERSION 0.1 LANGUAGES C CXX)
 
 # compiler settings
 set(CMAKE_CXX_STANDARD 26)
@@ -53,7 +53,7 @@ FetchContent_Declare(spdlog_external
 FetchContent_MakeAvailable(spdlog_external)
 include_directories(${spdlog_external_SOURCE_DIR}/include)
 
-# external package: imgui
+# external package: GLFW
 FetchContent_Declare(
   glfw_external
   GIT_REPOSITORY https://github.com/glfw/glfw.git
@@ -62,7 +62,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(glfw_external)
 include_directories(${glfw_external_SOURCE_DIR}/include)
 
-# external package: imgui
+# external package: ImGui
 FetchContent_Declare(imgui_external
     URL https://github.com/ocornut/imgui/archive/refs/tags/v1.91.4.tar.gz
     EXCLUDE_FROM_ALL
@@ -80,6 +80,15 @@ add_library(imgui
 include_directories(${imgui_external_SOURCE_DIR})
 include_directories(${imgui_external_SOURCE_DIR}/backends)
 target_include_directories(imgui PUBLIC ${imgui_external_SOURCE_DIR} ${glfw_external_SOURCE_DIR})
+
+# external package: GLAD
+FetchContent_Declare(glad_external
+    GIT_REPOSITORY https://github.com/Dav1dde/glad.git
+    GIT_TAG v2.0.8
+    SOURCE_SUBDIR cmake
+)
+FetchContent_MakeAvailable(glad_external)
+glad_add_library(glad_gl_core_3_0 STATIC REPRODUCIBLE LOADER API gl:core=3.0)
 
 # external package: nlohmann
 FetchContent_Declare(nlohmann_external

@@ -1,3 +1,5 @@
+#include <glad/gl.h>
+
 #include "lib/sega/executor/executor.h"
 #include "lib/sega/gui/gui.h"
 #include "spdlog/common.h"

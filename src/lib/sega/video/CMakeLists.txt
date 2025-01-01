@@ -4,5 +4,4 @@ target_link_libraries(
     sega_image_saver
     spdlog::spdlog_header_only
     ${OPENGL_LIBRARIES}
-    glfw
 )

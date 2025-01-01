@@ -1,6 +1,8 @@
-#include "gui.h"
+#include <glad/gl.h>
+
 #include "GLFW/glfw3.h"
 #include "fmt/format.h"
+#include "gui.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -8,6 +10,7 @@
 #include "lib/sega/executor/executor.h"
 #include "lib/sega/memory/controller_device.h"
 #include "lib/sega/rom_loader/rom_loader.h"
+#include "lib/sega/shader/shader.h"
 #include "lib/sega/video/colors.h"
 #include "lib/sega/video/constants.h"
 #include "lib/sega/video/plane.h"
@@ -91,6 +94,9 @@ bool Gui::setup() {
     return false;
   }
   glfwMakeContextCurrent(window_);
+  if (!gladLoadGL(glfwGetProcAddress)) {
+    return false;
+  }
 
   // setup Dear ImGui context
   IMGUI_CHECKVERSION();
@@ -108,6 +114,9 @@ bool Gui::setup() {
 
   // setup font
   io.Fonts->AddFontFromFileTTF(kFont, 18.0f);
+
+  // build shader programs
+  shader_.build_programs();
 
   return true;
 }
@@ -295,6 +304,31 @@ void Gui::add_game_window() {
   const auto scale = kTileDimension * static_cast<float>(game_scale_);
   const auto width = scale * static_cast<float>(video_.width());
   const auto height = scale * static_cast<float>(video_.height());
+
+  // setup shader
+  shader_program_ = shader_.get_program(ShaderType::Crt);
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  draw_list->AddCallback(
+      [](const ImDrawList*, const ImDrawCmd* draw_cmd) {
+        ImDrawData* draw_data = ImGui::GetDrawData();
+        float L = draw_data->DisplayPos.x;
+        float R = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
+        float T = draw_data->DisplayPos.y;
+        float B = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
+
+        const float ortho_projection[4][4] = {
+            {2.0f / (R - L), 0.0f, 0.0f, 0.0f},
+            {0.0f, 2.0f / (T - B), 0.0f, 0.0f},
+            {0.0f, 0.0f, -1.0f, 0.0f},
+            {(R + L) / (L - R), (T + B) / (B - T), 0.0f, 1.0f},
+        };
+
+        const auto program = *reinterpret_cast<GLuint*>(draw_cmd->UserCallbackData);
+        glUseProgram(program);
+        glUniformMatrix4fv(glGetUniformLocation(program, "ProjMtx"), 1, GL_FALSE, &ortho_projection[0][0]);
+      },
+      reinterpret_cast<void*>(&shader_program_));
+
   ImGui::Image(texture, ImVec2(width, height),
                /*uv0=*/ImVec2(0, 0), /*uv1=*/ImVec2(1, 1), /*tint_col=*/ImVec4(1, 1, 1, 1),
                /*border_col=*/ImVec4(1, 1, 1, 1));
