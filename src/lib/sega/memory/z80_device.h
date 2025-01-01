@@ -3,6 +3,7 @@
 #include "lib/common/memory/device.h"
 #include "lib/common/memory/types.h"
 #include <optional>
+#include <random>
 #include <vector>
 
 namespace sega {
@@ -15,10 +16,14 @@ public:
   Z80RamDevice();
 
 private:
+  using RandomBytesEngine = std::independent_bits_engine<std::default_random_engine, 8, Byte>;
+
+private:
   std::optional<Error> read(AddressType addr, MutableDataView data) override;
   std::optional<Error> write(AddressType addr, DataView data) override;
 
 private:
+  RandomBytesEngine random_engine_;
   std::vector<Byte> ram_data_;
 };
 

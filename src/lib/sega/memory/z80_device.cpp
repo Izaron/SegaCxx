@@ -2,8 +2,10 @@
 #include "fmt/format.h"
 #include "lib/common/error/error.h"
 #include "lib/common/memory/types.h"
+#include <algorithm>
 #include <cstddef>
 #include <fmt/core.h>
+#include <functional>
 #include <optional>
 #include <spdlog/spdlog.h>
 
@@ -22,14 +24,12 @@ Z80RamDevice::Z80RamDevice() {
 }
 
 std::optional<Error> Z80RamDevice::read(AddressType addr, MutableDataView data) {
-  for (size_t i = 0; i < data.size(); ++i) {
-    data[i] = ram_data_[addr + i - kBegin];
-  }
+  std::generate(data.begin(), data.end(), std::ref(random_engine_));
   return std::nullopt;
 }
 
 std::optional<Error> Z80RamDevice::write(AddressType addr, DataView data) {
-  for (size_t i = 0; i < data.size(); ++i) {
+  for (size_t i = 0; i < data.size() && addr + i - kBegin < ram_data_.size(); ++i) {
     ram_data_[addr + i - kBegin] = data[i];
   }
   return std::nullopt;
