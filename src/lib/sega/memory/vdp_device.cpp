@@ -473,19 +473,24 @@ std::optional<Error> VdpDevice::process_vdp_data(Word data) {
   }
 
   if (use_dma_ && dma_type_ == DmaType::VramFill) {
-    if (auto_increment_ != 1) {
-      return Error{Error::InvalidWrite, fmt::format("Invalid auto increment, expected: 1 got: {:x}", auto_increment_)};
-    }
     auto& ram = ram_data();
-    size_t end_address_ = ram_address_ + (dma_length_words_ << 1);
-    end_address_ = std::min(ram.size(), end_address_);
-    spdlog::debug("fill ram_kind: {} data: {:04x} begin: {:06x} end: {:06x}", magic_enum::enum_name(ram_kind_), data,
-                  ram_address_, end_address_);
-    for (size_t i = ram_address_; i < end_address_; i += 2) {
-      ram[i] = data >> 8;
-      ram[i + 1] = data & 0xFF;
+    const auto len = dma_length_words_ << 1;
+    spdlog::debug("fill ram_kind: {} data: {:04x} begin: {:06x} len: {:06x} auto_increment: {}",
+                  magic_enum::enum_name(ram_kind_), data, ram_address_, len, auto_increment_);
+
+    // change endianness in this case (example game: "Contra Hard Corps")
+    if (auto_increment_ > 1) {
+      if (ram_address_ % 2 == 0) {
+        ++ram_address_;
+      } else {
+        --ram_address_;
+      }
     }
-    ram_address_ = end_address_;
+
+    for (size_t i = 0; i < len; ++i) {
+      ram[ram_address_] = data & 0xFF;
+      ram_address_ += auto_increment_;
+    }
     use_dma_ = false;
     return std::nullopt;
   }
