@@ -30,6 +30,7 @@ public:
   ~Executor();
   [[nodiscard]] std::expected<Result, Error> execute_current_instruction();
 
+  void set_game_speed(double game_speed);
   void reset_interrupt_time();
   InstructionInfo current_instruction_info();
 

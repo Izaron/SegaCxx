@@ -76,6 +76,10 @@ public:
     return Executor::Result::Executed;
   }
 
+  void set_game_speed(double game_speed) {
+    interrupt_handler_.set_game_speed(game_speed);
+  }
+
   void reset_interrupt_time() {
     interrupt_handler_.reset_time();
   }
@@ -158,6 +162,10 @@ Executor::~Executor() = default;
 
 [[nodiscard]] std::expected<Executor::Result, Error> Executor::execute_current_instruction() {
   return impl_->execute_single_instruction();
+}
+
+void Executor::set_game_speed(double game_speed) {
+  impl_->set_game_speed(game_speed);
 }
 
 void Executor::reset_interrupt_time() {

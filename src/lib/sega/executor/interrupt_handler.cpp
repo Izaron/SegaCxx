@@ -9,7 +9,6 @@
 #include <cstdint>
 #include <optional>
 #include <spdlog/spdlog.h>
-#include <utility>
 
 namespace sega {
 
@@ -20,7 +19,7 @@ namespace {
 constexpr uint8_t VBLANK_INTERRUPT_LEVEL = 6;
 constexpr uint8_t HBLANK_INTERRUPT_LEVEL = 4;
 
-constexpr auto NTSC_WAIT_TIME = 0.01666666666s; // 60 frames per second
+constexpr auto NTSC_WAIT_TIME = 1s / 60.0; // 60 frames per second
 
 } // namespace
 
@@ -38,7 +37,7 @@ std::expected<bool, Error> InterruptHandler::check() {
   }
 
   const auto now = std::chrono::steady_clock::now();
-  if ((now - prev_fire_) >= NTSC_WAIT_TIME) {
+  if ((now - prev_fire_) >= NTSC_WAIT_TIME / game_speed_) {
     prev_fire_ = now;
     if (auto err = call_vblank()) {
       return std::unexpected(*err);
@@ -47,6 +46,10 @@ std::expected<bool, Error> InterruptHandler::check() {
   }
 
   return false;
+}
+
+void InterruptHandler::set_game_speed(double game_speed) {
+  game_speed_ = game_speed;
 }
 
 void InterruptHandler::reset_time() {

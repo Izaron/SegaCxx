@@ -94,6 +94,7 @@ bool Gui::setup() {
     return false;
   }
   glfwMakeContextCurrent(window_);
+  glfwSwapInterval(0);
   if (!gladLoadGL(glfwGetProcAddress)) {
     return false;
   }
@@ -294,12 +295,14 @@ void Gui::add_main_window() {
 void Gui::add_game_window() {
   ImGui::Begin("Game", &show_game_window_, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav);
 
+  // window size info
   ImGui::Text("Window Size =");
   ImGui::SameLine();
   ImGui::TextColored(kSizeColor, "%dx%d", video_.width() * kTileDimension, video_.height() * kTileDimension);
   ImGui::SameLine();
   ImGui::Text("pixels");
 
+  // shader selection
   if (ImGui::Button("Select Shader")) {
     ImGui::OpenPopup("shader_popup");
   }
@@ -315,8 +318,44 @@ void Gui::add_game_window() {
     ImGui::EndPopup();
   }
 
+  // game speed selection
+  const auto game_speed_str = std::invoke([game_speed = game_speed_] {
+    switch (game_speed) {
+    case GameSpeed::x0p25:
+      return "x0.25";
+    case GameSpeed::x0p50:
+      return "x0.5";
+    case GameSpeed::x1p00:
+      return "x1";
+    case GameSpeed::x1p50:
+      return "x1.5";
+    case GameSpeed::x2p00:
+      return "x2";
+    }
+  });
+  const auto game_speed_value = std::invoke([game_speed = game_speed_] {
+    switch (game_speed) {
+    case GameSpeed::x0p25:
+      return 0.25;
+    case GameSpeed::x0p50:
+      return 0.5;
+    case GameSpeed::x1p00:
+      return 1.0;
+    case GameSpeed::x1p50:
+      return 1.5;
+    case GameSpeed::x2p00:
+      return 2.0;
+    }
+  });
+
+  ImGui::SliderInt("Game Speed", reinterpret_cast<int*>(&game_speed_), 0, magic_enum::enum_count<GameSpeed>() - 1,
+                   game_speed_str);
+  executor_.set_game_speed(game_speed_value);
+
+  // scale selection
   ImGui::SliderInt("Scale##Game", &game_scale_, /*v_min=*/1, /*v_max=*/8);
 
+  // draw game to a texture
   const auto texture = video_.draw();
   const auto scale = kTileDimension * static_cast<float>(game_scale_);
   const auto width = scale * static_cast<float>(video_.width());

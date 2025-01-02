@@ -17,6 +17,7 @@ public:
   // returns true if an interrupt created
   [[nodiscard]] std::expected<bool, Error> check();
 
+  void set_game_speed(double game_speed);
   void reset_time();
 
 private:
@@ -28,6 +29,7 @@ private:
   Device& bus_device_;
   const VdpDevice& vdp_device_;
 
+  double game_speed_{1.0};
   std::chrono::time_point<std::chrono::steady_clock> prev_fire_{};
 };
 

@@ -72,6 +72,13 @@ private:
 
   // Game window
   bool show_game_window_{true};
+  enum class GameSpeed {
+    x0p25,
+    x0p50,
+    x1p00,
+    x1p50,
+    x2p00,
+  } game_speed_{GameSpeed::x1p00};
   int game_scale_{1};
   Video video_;
 
