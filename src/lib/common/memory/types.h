@@ -22,7 +22,7 @@ using SignedLongLong = int64_t;
 template<size_t Size>
 using Bytes = std::array<char, Size>;
 
-template<typename T>
+template<std::integral T>
 class BigEndian {
 public:
   T get() const {

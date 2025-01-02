@@ -73,6 +73,7 @@ struct Registers {
     return sr.supervisor ? ssp : usp;
   }
 };
+static_assert(sizeof(Registers) == 76);
 
 std::string dump(const Registers& registers);
 std::string dump_colored(const Registers& registers);

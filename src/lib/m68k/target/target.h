@@ -52,8 +52,8 @@ public:
   }
 
   // read methods
-  std::optional<Error> read(Context ctx, MutableDataView data);
-  std::expected<LongLong, Error> read_as_long_long(Context ctx, AddressType size);
+  [[nodiscard]] std::optional<Error> read(Context ctx, MutableDataView data);
+  [[nodiscard]] std::expected<LongLong, Error> read_as_long_long(Context ctx, AddressType size);
 
   template<std::integral T>
   std::expected<T, Error> read(Context ctx) {

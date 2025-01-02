@@ -156,8 +156,7 @@ std::optional<Error> ControllerDevice::write(AddressType addr, DataView data) {
     case kSerialControlExt:
       break;
     default:
-      return Error{Error::InvalidWrite,
-                   fmt::format("Invalid controller write address: {:06x} data: {:02x}", addr + i, data[i])};
+      spdlog::error("Invalid controller write address: {:06x} data: {:02x}", addr + i, data[i]);
     }
   }
   return std::nullopt;
