@@ -9,6 +9,7 @@
 #include "lib/sega/memory/m68k_ram_device.h"
 #include "lib/sega/memory/psg_device.h"
 #include "lib/sega/memory/rom_device.h"
+#include "lib/sega/memory/sram_access_register_device.h"
 #include "lib/sega/memory/trademark_register_device.h"
 #include "lib/sega/memory/vdp_device.h"
 #include "lib/sega/memory/ym2612_device.h"
@@ -44,6 +45,7 @@ public:
     bus_.add_device(&controller_device_);
     bus_.add_device(&z80_controller_device_);
     bus_.add_device(&trademark_register_device_);
+    bus_.add_device(&sram_access_register_device_);
     bus_.add_device(&vdp_device_);
     bus_.add_device(&psg_device_);
     bus_.add_device(&m68k_ram_device_);
@@ -141,6 +143,7 @@ private:
   Ym2612Device ym2612_device_;
   ControllerDevice controller_device_;
   Z80ControllerDevice z80_controller_device_;
+  SramAccessRegisterDevice sram_access_register_device_;
   TrademarkRegisterDevice trademark_register_device_;
   VdpDevice vdp_device_;
   PsgDevice psg_device_;

@@ -5,6 +5,7 @@ add_library(
     m68k_ram_device.cpp
     psg_device.cpp
     rom_device.cpp
+    sram_access_register_device.cpp
     trademark_register_device.cpp
     vdp_device.cpp
     ym2612_device.cpp
