@@ -138,8 +138,18 @@ std::span<const uint8_t> Video::update() {
       return false;
     }
 
-    size_t tile_x = (x / kTileDimension) % vdp_device_.plane_width();
-    size_t tile_y = (y / kTileDimension) % vdp_device_.plane_height();
+    size_t raw_tile_x = (x / kTileDimension);
+    size_t raw_tile_y = (y / kTileDimension);
+    if (plane_type == PlaneType::Window && vdp_device_.plane_width() == 64 && vdp_device_.tile_width() == 32)
+        [[unlikely]] {
+      if (raw_tile_y % 2 == 1) {
+        raw_tile_x += 32;
+      }
+      raw_tile_y /= 2;
+    }
+
+    size_t tile_x = raw_tile_x % vdp_device_.plane_width();
+    size_t tile_y = raw_tile_y % vdp_device_.plane_height();
 
     const auto* nametable_vram_ptr = vdp_device_.vram_data().data() + table_address +
                                      sizeof(NametableEntry) * (tile_y * vdp_device_.plane_width() + tile_x);
