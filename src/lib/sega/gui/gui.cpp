@@ -1,3 +1,4 @@
+#include <cctype>
 #include <glad/gl.h>
 
 #include "GLFW/glfw3.h"
@@ -49,7 +50,7 @@ void glfw_error_callback(int error, const char* description) {
 
 std::string make_title(const Metadata& metadata) {
   std::stringstream ss;
-  const auto& title = metadata.domestic_title;
+  const auto& title = std::isalnum(metadata.domestic_title[0]) ? metadata.domestic_title : metadata.overseas_title;
   for (size_t i = 0; i < title.size(); ++i) {
     if (i == 0 || !(title[i - 1] == ' ' && title[i] == ' ')) {
       ss << title[i];
@@ -251,7 +252,7 @@ void Gui::add_main_window() {
   ImGui::Checkbox("\"Plane B\" Plane Window", &show_plane_window_[1]);
   ImGui::Checkbox("\"Window\" Plane Window", &show_plane_window_[2]);
   ImGui::Checkbox("Sprite Table Window", &show_sprite_table_window_);
-  ImGui::Checkbox("Demo Window", &show_demo_window_);
+  // ImGui::Checkbox("Demo Window", &show_demo_window_);
   if (ImGui::Button("Save Dump")) {
     executor_.save_dump_to_file("dump.bin");
   }
