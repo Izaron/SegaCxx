@@ -202,7 +202,7 @@ bool Gui::poll_events() {
 }
 
 void Gui::update_controller() {
-  static constexpr std::array<std::pair<ImGuiKey, ControllerDevice::Button>, 16> kMap = {
+  static constexpr std::array kMap = {
       // keyboard keys
       std::make_pair(ImGuiKey_Enter, ControllerDevice::Button::Start),
 
@@ -297,6 +297,23 @@ void Gui::add_game_window() {
   ImGui::Text("Window Size =");
   ImGui::SameLine();
   ImGui::TextColored(kSizeColor, "%dx%d", video_.width() * kTileDimension, video_.height() * kTileDimension);
+  ImGui::SameLine();
+  ImGui::Text("pixels");
+
+  if (ImGui::Button("Select Shader")) {
+    ImGui::OpenPopup("shader_popup");
+  }
+  ImGui::SameLine();
+  ImGui::TextUnformatted(magic_enum::enum_name(current_shader_type_).data());
+  if (ImGui::BeginPopup("shader_popup")) {
+    ImGui::SeparatorText("Shader Type");
+    for (const auto value : magic_enum::enum_values<ShaderType>()) {
+      if (ImGui::Selectable(magic_enum::enum_name(value).data())) {
+        current_shader_type_ = value;
+      }
+    }
+    ImGui::EndPopup();
+  }
 
   ImGui::SliderInt("Scale##Game", &game_scale_, /*v_min=*/1, /*v_max=*/8);
 
@@ -306,7 +323,7 @@ void Gui::add_game_window() {
   const auto height = scale * static_cast<float>(video_.height());
 
   // setup shader
-  shader_program_ = shader_.get_program(ShaderType::Crt);
+  shader_program_ = shader_.get_program(current_shader_type_);
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   draw_list->AddCallback(
       [](const ImDrawList*, const ImDrawCmd* draw_cmd) {

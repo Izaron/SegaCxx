@@ -68,7 +68,7 @@ private:
   // Shader variables
   Shader shader_;
   GLuint shader_program_;
-  ShaderType current_shader_type_{ShaderType::Crt};
+  ShaderType current_shader_type_{ShaderType::Nothing};
 
   // Game window
   bool show_game_window_{true};
