@@ -1,0 +1,2 @@
+add_executable(m68k_emulator main.cpp)
+target_link_libraries(m68k_emulator m68k_registers m68k_instruction memory error)
