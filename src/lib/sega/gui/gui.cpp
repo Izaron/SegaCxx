@@ -207,6 +207,7 @@ void Gui::update_controller() {
   static constexpr std::array kMap = {
       // keyboard keys
       std::make_pair(ImGuiKey_Enter, ControllerDevice::Button::Start),
+      std::make_pair(ImGuiKey_RightShift, ControllerDevice::Button::Mode),
 
       std::make_pair(ImGuiKey_LeftArrow, ControllerDevice::Button::Left),
       std::make_pair(ImGuiKey_RightArrow, ControllerDevice::Button::Right),
@@ -217,8 +218,13 @@ void Gui::update_controller() {
       std::make_pair(ImGuiKey_S, ControllerDevice::Button::B),
       std::make_pair(ImGuiKey_D, ControllerDevice::Button::C),
 
+      std::make_pair(ImGuiKey_Q, ControllerDevice::Button::X),
+      std::make_pair(ImGuiKey_W, ControllerDevice::Button::Y),
+      std::make_pair(ImGuiKey_E, ControllerDevice::Button::Z),
+
       // Retroflag joystick buttons
       std::make_pair(ImGuiKey_GamepadStart, ControllerDevice::Button::Start),
+      std::make_pair(ImGuiKey_GamepadBack, ControllerDevice::Button::Mode),
 
       std::make_pair(ImGuiKey_GamepadDpadLeft, ControllerDevice::Button::Left),
       std::make_pair(ImGuiKey_GamepadDpadRight, ControllerDevice::Button::Right),
@@ -228,9 +234,14 @@ void Gui::update_controller() {
       std::make_pair(ImGuiKey_GamepadFaceDown, ControllerDevice::Button::A),
       std::make_pair(ImGuiKey_GamepadFaceRight, ControllerDevice::Button::B),
       std::make_pair(ImGuiKey_GamepadR2, ControllerDevice::Button::C),
+
+      std::make_pair(ImGuiKey_GamepadFaceLeft, ControllerDevice::Button::X),
+      std::make_pair(ImGuiKey_GamepadFaceUp, ControllerDevice::Button::Y),
+      std::make_pair(ImGuiKey_GamepadR1, ControllerDevice::Button::Z),
   };
 
   auto& controller = executor_.controller_device();
+  controller.on_vblank();
   for (const auto& [key, button] : kMap) {
     if (ImGui::IsKeyPressed(key, /*repeat=*/false)) {
       controller.set_button(button, true);

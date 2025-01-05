@@ -16,18 +16,29 @@ public:
   static constexpr AddressType kEnd = 0xA1001F;
 
   enum class Button : uint8_t {
-    Up = 0,
-    Down = 1,
-    Left = 2,
-    Right = 3,
-    A = 4,
-    B = 5,
-    C = 6,
-    Start = 7,
+    // arrow buttons
+    Up,
+    Down,
+    Left,
+    Right,
+
+    // 3-controller buttons
+    A,
+    B,
+    C,
+    Start,
+
+    // 6-controller buttons
+    X,
+    Y,
+    Z,
+    Mode,
   };
 
   // only for 0th controller currently
   void set_button(Button button, bool pressed);
+
+  void on_vblank();
 
 private:
   std::optional<Error> read(AddressType addr, MutableDataView data) override;
@@ -42,8 +53,15 @@ private:
   using PressedMap = std::array<bool, kButtonCount>;
 
   enum class StepNumber {
+    Step0,
     Step1,
     Step2,
+    Step3,
+    Step4,
+    Step5,
+    Step6,
+    Step7,
+    Step8,
   };
 
 private:

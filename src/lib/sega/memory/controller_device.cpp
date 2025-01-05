@@ -1,5 +1,4 @@
 #include "controller_device.h"
-#include "fmt/format.h"
 #include "lib/common/error/error.h"
 #include "lib/common/memory/types.h"
 #include <bit>
@@ -83,11 +82,34 @@ struct Step2Value {
 };
 static_assert(sizeof(Step2Value) == 1);
 
+struct Step6Value {
+  bool : 4;
+  bool a : 1;
+  bool start : 1;
+};
+static_assert(sizeof(Step6Value) == 1);
+
+struct Step7Value {
+  bool z : 1;
+  bool y : 1;
+  bool x : 1;
+  bool mode : 1;
+  bool b : 1;
+  bool c : 1;
+};
+static_assert(sizeof(Step7Value) == 1);
+
 } // namespace
 
 void ControllerDevice::set_button(Button button, bool pressed) {
   auto& pressed_map = pressed_map_by_controller_[0];
   pressed_map[std::to_underlying(button)] = pressed;
+}
+
+void ControllerDevice::on_vblank() {
+  for (auto& current_step : current_step_by_controller_) {
+    current_step = StepNumber::Step0;
+  }
 }
 
 std::optional<Error> ControllerDevice::read(AddressType addr, MutableDataView data) {
@@ -127,18 +149,23 @@ std::optional<Error> ControllerDevice::read(AddressType addr, MutableDataView da
 }
 
 std::optional<Error> ControllerDevice::write(AddressType addr, DataView data) {
+  const auto increment_step = [this](size_t idx, Byte value) {
+    auto& current_step = current_step_by_controller_[idx];
+    current_step = static_cast<StepNumber>(std::to_underlying(current_step) + 1);
+  };
+
   for (size_t i = 0; i < data.size(); ++i) {
     const auto value = data[i];
     switch (addr + i) {
     // data registers
     case kData1:
-      current_step_by_controller_[0] = value == 0x40 ? StepNumber::Step1 : StepNumber::Step2;
+      increment_step(0, value);
       break;
     case kData2:
-      current_step_by_controller_[1] = value == 0x40 ? StepNumber::Step1 : StepNumber::Step2;
+      increment_step(1, value);
       break;
     case kDataExt:
-      current_step_by_controller_[2] = value == 0x40 ? StepNumber::Step1 : StepNumber::Step2;
+      increment_step(2, value);
       break;
     // control registers
     case kCtrl1:
@@ -178,7 +205,9 @@ Byte ControllerDevice::read_pressed_status(size_t controller) {
   const auto& pressed_map = pressed_map_by_controller_[controller];
   const auto& current_step = current_step_by_controller_[controller];
   switch (current_step) {
-  case StepNumber::Step1: {
+  case StepNumber::Step1:
+  case StepNumber::Step3:
+  case StepNumber::Step5: {
     Step1Value value;
     std::memset(&value, 0, sizeof(value));
     value.up = not pressed_map[std::to_underlying(Button::Up)];
@@ -189,7 +218,8 @@ Byte ControllerDevice::read_pressed_status(size_t controller) {
     value.c = not pressed_map[std::to_underlying(Button::C)];
     return std::bit_cast<Byte>(value);
   }
-  case StepNumber::Step2: {
+  case StepNumber::Step2:
+  case StepNumber::Step4: {
     Step2Value value;
     std::memset(&value, 0, sizeof(value));
     value.up = not pressed_map[std::to_underlying(Button::Up)];
@@ -198,7 +228,30 @@ Byte ControllerDevice::read_pressed_status(size_t controller) {
     value.start = not pressed_map[std::to_underlying(Button::Start)];
     return std::bit_cast<Byte>(value);
   }
+  case StepNumber::Step6:
+  case StepNumber::Step8: {
+    Step6Value value;
+    std::memset(&value, 0, sizeof(value));
+    value.a = not pressed_map[std::to_underlying(Button::A)];
+    value.start = not pressed_map[std::to_underlying(Button::Start)];
+    return std::bit_cast<Byte>(value);
   }
+  case StepNumber::Step7: {
+    Step7Value value;
+    std::memset(&value, 0, sizeof(value));
+    value.z = not pressed_map[std::to_underlying(Button::Z)];
+    value.y = not pressed_map[std::to_underlying(Button::Y)];
+    value.x = not pressed_map[std::to_underlying(Button::X)];
+    value.mode = not pressed_map[std::to_underlying(Button::Mode)];
+    value.b = not pressed_map[std::to_underlying(Button::B)];
+    value.c = not pressed_map[std::to_underlying(Button::C)];
+    return std::bit_cast<Byte>(value);
+  }
+  default:
+    break;
+  }
+  spdlog::error("controller {} has unknown step {}", controller, std::to_underlying(current_step));
+  return 0xff;
 }
 
 } // namespace sega
