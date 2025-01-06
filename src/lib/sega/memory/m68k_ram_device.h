@@ -9,7 +9,7 @@ namespace sega {
 
 class M68kRamDevice : public Device {
 public:
-  static constexpr AddressType kBegin = 0xC00020;
+  static constexpr AddressType kBegin = 0xFF0000;
   static constexpr AddressType kEnd = 0xFFFFFF;
 
   M68kRamDevice();
